@@ -1,0 +1,1064 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>FTPF Defence Analyser</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=Cormorant+Garamond:wght@700&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+/* ─── Tokens ─────────────────────────────────────────────────────────────── */
+:root{
+  --cream:#f5f0e8;
+  --paper:#faf7f2;
+  --white:#ffffff;
+  --ink:#1c1a16;
+  --ink2:#4a4640;
+  --ink3:#8c8680;
+  --ink4:#bbb5ae;
+  --rule:#ddd8d0;
+  --rule2:#eae6e0;
+  --danger:#b91c1c;
+  --danger-bg:#fef2f2;
+  --danger-border:#fecaca;
+  --warn:#92400e;
+  --warn-bg:#fffbeb;
+  --warn-border:#fde68a;
+  --safe:#065f46;
+  --safe-bg:#ecfdf5;
+  --safe-border:#a7f3d0;
+  --accent:#b91c1c;
+  --blue:#1d4ed8;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'Instrument Sans','Helvetica Neue',sans-serif;
+  --mono:'Instrument Sans','Helvetica Neue',Arial,sans-serif;
+}
+
+/* ─── Reset ──────────────────────────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--cream);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6;min-height:100vh}
+
+/* ─── Masthead ───────────────────────────────────────────────────────────── */
+#masthead{background:var(--ink);color:var(--cream);position:relative;overflow:hidden}
+#masthead::before{content:'';position:absolute;top:0;right:0;width:50%;height:100%;background:repeating-linear-gradient(45deg,transparent,transparent 10px,rgba(255,255,255,.015) 10px,rgba(255,255,255,.015) 11px);pointer-events:none}
+#mast-inner{max-width:1080px;margin:0 auto;padding:40px 48px;position:relative}
+#mast-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,.12)}
+.brand-row{display:flex;align-items:center;gap:12px}
+.brand-seal{width:38px;height:38px;border:2px solid var(--danger);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.9rem;color:var(--danger);flex-shrink:0}
+.brand-text{font-family:var(--mono);font-size:.65rem;letter-spacing:.18em;color:rgba(255,255,255,.45);line-height:1.5}
+.brand-text strong{display:block;font-size:.82rem;color:rgba(255,255,255,.9);letter-spacing:.1em}
+.mast-tags{display:flex;gap:8px;flex-wrap:wrap}
+.mast-tag{font-family:var(--mono);font-size:.58rem;letter-spacing:.1em;padding:4px 10px;border:1px solid rgba(255,255,255,.15);border-radius:2px;color:rgba(255,255,255,.5)}
+.mast-tag.live{border-color:var(--danger);color:var(--danger);background:rgba(185,28,28,.12)}
+
+#mast-body{display:grid;grid-template-columns:1fr auto;gap:40px;align-items:end}
+#mast-headline{padding-bottom:4px}
+#mast-headline .overline{font-family:var(--mono);font-size:.62rem;letter-spacing:.2em;color:rgba(255,255,255,.4);margin-bottom:14px;display:block}
+#mast-headline h1{font-family:var(--serif);font-size:2.6rem;font-weight:800;line-height:1.1;letter-spacing:-.02em;color:var(--white);margin-bottom:16px}
+#mast-headline h1 em{font-style:italic;color:var(--danger)}
+#mast-headline p{font-size:.88rem;color:rgba(255,255,255,.55);line-height:1.7;max-width:480px}
+
+.mast-stat-grid{display:flex;flex-direction:column;gap:0;border:1px solid rgba(255,255,255,.1);border-radius:4px;overflow:hidden;min-width:200px}
+.mast-stat{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.mast-stat:last-child{border-bottom:none}
+.ms-label{font-family:var(--mono);font-size:.55rem;letter-spacing:.14em;color:rgba(255,255,255,.35);margin-bottom:4px}
+.ms-val{font-size:.82rem;font-weight:600;color:rgba(255,255,255,.9)}
+.ms-val.danger{color:#fca5a5}
+.ms-val.warn{color:#fcd34d}
+.ms-val.safe{color:#6ee7b7}
+.ms-sub{font-size:.6rem;color:rgba(255,255,255,.3);margin-top:2px;font-family:var(--mono)}
+
+/* ─── Progress rail ──────────────────────────────────────────────────────── */
+#rail{background:var(--white);border-bottom:1px solid var(--rule);position:sticky;top:0;z-index:100;box-shadow:0 1px 0 var(--rule),0 2px 8px rgba(0,0,0,.04)}
+#rail-inner{max-width:1080px;margin:0 auto;padding:0 48px;display:flex;align-items:stretch;overflow-x:auto;gap:0}
+.rail-step{display:flex;align-items:center;gap:8px;padding:14px 18px;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .2s;opacity:.38;font-size:.75rem;font-weight:500;color:var(--ink2)}
+.rail-step:hover{opacity:.65}
+.rail-step.active{border-bottom-color:var(--danger);opacity:1;color:var(--ink)}
+.rail-step.done{border-bottom-color:var(--safe);opacity:.75;color:var(--safe)}
+.rail-step.done:hover{opacity:1}
+.rail-num{width:20px;height:20px;border-radius:50%;background:var(--rule);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.58rem;font-weight:700;color:var(--ink3);flex-shrink:0;transition:all .2s}
+.rail-step.active .rail-num{background:var(--danger);color:var(--white)}
+.rail-step.done .rail-num{background:var(--safe);color:var(--white)}
+#rail-progress{height:2px;background:var(--rule2);position:relative}
+#rail-fill{height:100%;background:linear-gradient(90deg,var(--danger),#ef4444);width:0%;transition:width .5s ease;position:absolute;top:0;left:0}
+
+/* ─── Layout ─────────────────────────────────────────────────────────────── */
+#wrap{max-width:1080px;margin:0 auto;padding:40px 48px 100px;display:grid;grid-template-columns:1fr 300px;gap:36px;align-items:start}
+
+/* ─── Sidebar ────────────────────────────────────────────────────────────── */
+#sidebar{position:sticky;top:58px;display:flex;flex-direction:column;gap:0;border:1px solid var(--rule);border-radius:6px;background:var(--white);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.sb-section{border-bottom:1px solid var(--rule2);padding:18px 20px}
+.sb-section:last-child{border-bottom:none}
+.sb-heading{font-family:var(--mono);font-size:.58rem;letter-spacing:.14em;color:var(--ink4);margin-bottom:12px;text-transform:uppercase}
+
+/* Exposure meter */
+#meter-wrap{text-align:center}
+#meter-arc-wrap{width:140px;height:72px;margin:0 auto 10px;display:block}
+.arc-bg{fill:none;stroke:var(--rule);stroke-width:10;stroke-linecap:butt}
+.arc-fill{fill:none;stroke-width:10;stroke-linecap:butt;transition:stroke-dashoffset .8s cubic-bezier(.4,0,.2,1),stroke .4s}
+#meter-val{font-family:var(--serif);font-size:1.8rem;font-weight:700;color:var(--ink);display:block;line-height:1}
+#meter-desc{font-size:.7rem;color:var(--ink3);margin-top:4px;font-style:italic}
+
+/* Heatmap */
+.hmap{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.hmap-cell{border-radius:3px;padding:7px 9px;transition:background .4s,border .4s;border:1px solid var(--rule2)}
+.hmap-cell .hc-name{font-size:.64rem;font-weight:600;color:var(--ink);margin-bottom:1px}
+.hmap-cell .hc-status{font-family:var(--mono);font-size:.52rem;letter-spacing:.06em;color:var(--ink3)}
+.hmap-cell.danger{background:var(--danger-bg);border-color:var(--danger-border)}
+.hmap-cell.danger .hc-status{color:var(--danger)}
+.hmap-cell.warn{background:var(--warn-bg);border-color:var(--warn-border)}
+.hmap-cell.warn .hc-status{color:var(--warn)}
+.hmap-cell.safe{background:var(--safe-bg);border-color:var(--safe-border)}
+.hmap-cell.safe .hc-status{color:var(--safe)}
+
+/* Score bars */
+.sbar{margin-bottom:9px}
+.sbar-top{display:flex;justify-content:space-between;margin-bottom:3px;font-size:.68rem}
+.sbar-top span:first-child{color:var(--ink2)}
+.sbar-top span:last-child{font-family:var(--mono);font-weight:700;font-size:.65rem}
+.sbar-track{height:3px;background:var(--rule2);border-radius:2px;overflow:hidden}
+.sbar-fill{height:100%;border-radius:2px;transition:width .6s ease}
+
+/* Methodology */
+.method-row{display:flex;justify-content:space-between;font-size:.7rem;padding:4px 0;border-bottom:1px solid var(--rule2)}
+.method-row:last-child{border-bottom:none}
+.method-row span:first-child{color:var(--ink2)}
+.method-row span:last-child{font-family:var(--mono);font-weight:700;color:var(--ink)}
+
+/* Sidebar quote */
+.sq-text{font-size:.75rem;font-style:italic;color:var(--ink2);line-height:1.7;border-left:2px solid var(--danger);padding-left:12px;margin-bottom:8px}
+.sq-attr{font-family:var(--mono);font-size:.58rem;color:var(--ink4)}
+
+/* ─── Content panels ─────────────────────────────────────────────────────── */
+#content{min-width:0}
+.step-panel{display:none}
+.step-panel.active{display:block}
+
+/* Section headers */
+.section-eyebrow{font-family:var(--mono);font-size:.6rem;letter-spacing:.16em;color:var(--ink4);margin-bottom:6px;display:block}
+.section-title{font-family:var(--serif);font-size:1.45rem;font-weight:700;color:var(--ink);margin-bottom:6px;line-height:1.2}
+.section-sub{font-size:.82rem;color:var(--ink2);margin-bottom:24px;line-height:1.65}
+
+/* Cards */
+.card{background:var(--white);border:1px solid var(--rule);border-radius:6px;margin-bottom:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);transition:box-shadow .2s}
+.card:hover{box-shadow:0 2px 8px rgba(0,0,0,.07)}
+
+/* Sector grid */
+.sector-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:4px}
+.sec-btn{background:var(--paper);border:1.5px solid var(--rule);border-radius:5px;padding:14px 12px;cursor:pointer;text-align:left;transition:all .2s;font-family:var(--sans)}
+.sec-btn:hover{border-color:var(--ink3);background:var(--white)}
+.sec-btn.active{border-color:var(--danger);background:var(--danger-bg)}
+.sec-btn .sb-icon{font-size:1.3rem;margin-bottom:6px;display:block}
+.sec-btn .sb-name{font-size:.75rem;font-weight:600;color:var(--ink);display:block;margin-bottom:3px}
+.sec-btn .sb-risk{font-family:var(--mono);font-size:.58rem;letter-spacing:.06em}
+.sec-btn .sb-risk.h{color:var(--danger)}
+.sec-btn .sb-risk.m{color:var(--warn)}
+.sec-btn .sb-risk.l{color:var(--safe)}
+
+/* Eligibility */
+.elig-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.elig-card{background:var(--paper);border:1.5px solid var(--rule);border-radius:5px;padding:14px;cursor:pointer;transition:all .2s;user-select:none;text-align:center}
+.elig-card:hover{border-color:var(--ink3)}
+.elig-card.on{border-color:var(--danger);background:var(--danger-bg)}
+.elig-card .ec-icon{font-size:1.3rem;margin-bottom:6px;display:block}
+.elig-card .ec-thresh{font-family:var(--mono);font-size:.72rem;color:var(--danger);font-weight:700;margin-bottom:2px}
+.elig-card .ec-label{font-size:.72rem;color:var(--ink2)}
+.elig-result{border-radius:5px;padding:12px 14px;font-size:.78rem;display:none;line-height:1.65}
+.elig-result.inscope{background:var(--danger-bg);border:1px solid var(--danger-border);color:var(--danger);display:block}
+.elig-result.partial{background:var(--warn-bg);border:1px solid var(--warn-border);color:var(--warn);display:block}
+.elig-result.outscope{background:var(--safe-bg);border:1px solid var(--safe-border);color:var(--safe);display:block}
+
+/* Principle card */
+.pcard{background:var(--white);border:1px solid var(--rule);border-radius:6px;margin-bottom:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.pcard-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;cursor:pointer;border-bottom:1px solid transparent;transition:background .15s}
+.pcard-head:hover{background:var(--paper)}
+.pcard-left{display:flex;align-items:center;gap:14px}
+.pcard-num{width:32px;height:32px;border-radius:50%;border:2px solid var(--rule);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.72rem;font-weight:700;color:var(--ink3);flex-shrink:0;transition:all .2s}
+.pcard-num.done{border-color:var(--safe);background:var(--safe);color:var(--white)}
+.pcard-num.partial{border-color:#d97706;background:#d97706;color:var(--white)}
+.pcard-num.weak{border-color:var(--danger);background:var(--danger);color:var(--white)}
+.pcard-title{font-weight:600;font-size:.92rem;color:var(--ink);margin-bottom:2px}
+.pcard-sub{font-size:.7rem;color:var(--ink3)}
+.pcard-badge{font-family:var(--mono);font-size:.58rem;letter-spacing:.06em;padding:3px 9px;border-radius:2px;font-weight:700;border:1px solid}
+.pb-none{color:var(--ink4);border-color:var(--rule);background:var(--paper)}
+.pb-done{color:var(--safe);border-color:var(--safe-border);background:var(--safe-bg)}
+.pb-partial{color:var(--warn);border-color:var(--warn-border);background:var(--warn-bg)}
+.pb-weak{color:var(--danger);border-color:var(--danger-border);background:var(--danger-bg)}
+.pcard-body{display:none}
+.pcard-body.open{display:block}
+.pcard-intro{padding:14px 22px;background:var(--paper);border-top:1px solid var(--rule2);border-bottom:1px solid var(--rule2);font-size:.78rem;color:var(--ink2);line-height:1.7}
+.sfo-alert{display:inline-flex;align-items:center;gap:6px;margin-top:10px;background:var(--danger-bg);border:1px solid var(--danger-border);border-radius:3px;padding:5px 10px;font-family:var(--mono);font-size:.6rem;letter-spacing:.06em;color:var(--danger)}
+
+/* Questions */
+.question{padding:20px 22px;border-bottom:1px solid var(--rule2)}
+.question:last-child{border-bottom:none}
+.q-meta{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.q-meta-num{font-family:var(--mono);font-size:.58rem;color:var(--ink4);letter-spacing:.1em}
+.q-sfo-badge{font-family:var(--mono);font-size:.55rem;letter-spacing:.08em;color:var(--danger);background:var(--danger-bg);border:1px solid var(--danger-border);padding:2px 7px;border-radius:2px}
+.q-text{font-size:.86rem;color:var(--ink);line-height:1.6;margin-bottom:8px;font-weight:500}
+.q-context{font-size:.75rem;color:var(--ink3);background:var(--paper);border-left:2px solid var(--rule);padding:8px 12px;border-radius:0 3px 3px 0;margin-bottom:12px;line-height:1.65}
+.opts{display:flex;gap:6px;flex-wrap:wrap}
+.opt{padding:7px 16px;border:1.5px solid var(--rule);border-radius:3px;cursor:pointer;font-size:.76rem;color:var(--ink2);transition:all .15s;background:var(--paper);font-family:var(--sans);font-weight:500}
+.opt:hover{border-color:var(--ink3);color:var(--ink);background:var(--white)}
+.opt.yes{background:var(--safe-bg);border-color:var(--safe-border);color:var(--safe)}
+.opt.partial{background:var(--warn-bg);border-color:var(--warn-border);color:var(--warn)}
+.opt.no{background:var(--danger-bg);border-color:var(--danger-border);color:var(--danger)}
+.opt.na{background:var(--paper);border-color:var(--rule);color:var(--ink3)}
+.q-action{display:none;margin-top:10px;padding:10px 14px;background:var(--warn-bg);border:1px solid var(--warn-border);border-radius:3px;font-size:.74rem;color:var(--warn);line-height:1.65}
+.q-action.show{display:block}
+.q-action strong{font-family:var(--mono);font-size:.58rem;letter-spacing:.08em;display:block;margin-bottom:4px;color:#92400e}
+.q-prose-risk{display:none;margin-top:8px;padding:8px 12px;background:var(--danger-bg);border-left:3px solid var(--danger);font-size:.73rem;color:var(--danger);line-height:1.55;border-radius:0 3px 3px 0}
+.q-prose-risk.show{display:block}
+
+/* Navigation buttons */
+.step-foot{display:flex;align-items:center;justify-content:space-between;margin-top:20px;padding-top:20px;border-top:1px solid var(--rule2)}
+.btn-back{background:transparent;border:1.5px solid var(--rule);color:var(--ink2);padding:10px 20px;border-radius:3px;font-size:.8rem;cursor:pointer;font-family:var(--sans);font-weight:500;transition:all .15s}
+.btn-back:hover{border-color:var(--ink3);color:var(--ink)}
+.btn-next{background:var(--ink);color:var(--white);border:none;padding:10px 24px;border-radius:3px;font-size:.82rem;font-weight:600;cursor:pointer;font-family:var(--sans);transition:opacity .15s;letter-spacing:.01em}
+.btn-next:hover{opacity:.85}
+.step-counter{font-family:var(--mono);font-size:.65rem;color:var(--ink4)}
+
+/* ─── Results ────────────────────────────────────────────────────────────── */
+#results-panel{display:none}
+#results-panel.show{display:block}
+
+.r-hero{background:var(--ink);color:var(--white);border-radius:6px;padding:36px;margin-bottom:20px;position:relative;overflow:hidden}
+.r-hero::after{content:'';position:absolute;top:0;right:0;width:40%;height:100%;background:repeating-linear-gradient(45deg,transparent,transparent 8px,rgba(255,255,255,.02) 8px,rgba(255,255,255,.02) 9px)}
+.r-hero-inner{display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:center;position:relative}
+.r-dial{width:100px;height:100px;border-radius:50%;border:3px solid;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
+.r-dial.strong{border-color:#6ee7b7;color:#6ee7b7}
+.r-dial.moderate{border-color:#fcd34d;color:#fcd34d}
+.r-dial.weak{border-color:#fca5a5;color:#fca5a5}
+.r-dial .rd-num{font-family:var(--serif);font-size:1.9rem;font-weight:700;line-height:1}
+.r-dial .rd-lbl{font-family:var(--mono);font-size:.5rem;letter-spacing:.1em;margin-top:3px;opacity:.8}
+.r-verdict h2{font-family:var(--serif);font-size:1.4rem;font-weight:700;margin-bottom:8px;color:var(--white)}
+.r-verdict p{font-size:.82rem;color:rgba(255,255,255,.65);line-height:1.7}
+.r-quote{margin-top:14px;padding:10px 14px;background:rgba(185,28,28,.25);border-left:3px solid #fca5a5;font-size:.75rem;color:#fca5a5;font-style:italic;line-height:1.6;border-radius:0 3px 3px 0}
+.r-meta{margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.1);font-family:var(--mono);font-size:.6rem;color:rgba(255,255,255,.3);letter-spacing:.08em;position:relative}
+
+.r-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.r-stat{background:var(--white);border:1px solid var(--rule);border-radius:5px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.rs-label{font-family:var(--mono);font-size:.57rem;letter-spacing:.12em;color:var(--ink4);margin-bottom:6px}
+.rs-val{font-family:var(--serif);font-size:1.3rem;font-weight:700;margin-bottom:2px}
+.rs-sub{font-size:.68rem;color:var(--ink3)}
+
+.r-breakdown{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.rb-card{background:var(--white);border:1px solid var(--rule);border-radius:5px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.rb-name{font-family:var(--mono);font-size:.58rem;letter-spacing:.1em;color:var(--ink4);margin-bottom:5px}
+.rb-score{font-size:.88rem;font-weight:600;margin-bottom:5px}
+.rb-track{height:3px;background:var(--rule2);border-radius:2px;margin-bottom:5px}
+.rb-fill{height:100%;border-radius:2px;transition:width .7s ease}
+.rb-verdict{font-size:.68rem;color:var(--ink3);font-style:italic}
+
+.r-actions h3{font-family:var(--serif);font-size:1.1rem;font-weight:700;margin-bottom:14px;color:var(--ink);display:flex;align-items:baseline;gap:10px}
+.r-actions h3 span{font-family:var(--mono);font-size:.62rem;color:var(--ink3);font-weight:400}
+.action-item{background:var(--white);border:1px solid var(--rule);border-radius:5px;padding:14px 16px;margin-bottom:8px;display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.ai-num{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.65rem;font-weight:700;flex-shrink:0}
+.ai-p1{background:var(--danger);color:var(--white)}
+.ai-p2{background:#d97706;color:var(--white)}
+.ai-p3{background:var(--rule);color:var(--ink3)}
+.ai-body .ai-title{font-size:.8rem;font-weight:600;color:var(--ink);margin-bottom:3px}
+.ai-body .ai-desc{font-size:.74rem;color:var(--ink2);line-height:1.65}
+.ai-timeline{display:inline-block;margin-top:6px;font-family:var(--mono);font-size:.58rem;padding:2px 8px;border-radius:2px;letter-spacing:.06em}
+.t-urgent{background:var(--danger-bg);color:var(--danger);border:1px solid var(--danger-border)}
+.t-soon{background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn-border)}
+.t-plan{background:var(--paper);color:var(--ink4);border:1px solid var(--rule)}
+
+.evid-pack{background:var(--white);border:1px solid var(--rule);border-radius:5px;padding:18px;margin-top:16px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.ep-title{font-family:var(--serif);font-size:.95rem;font-weight:700;margin-bottom:12px;color:var(--ink)}
+.ep-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.ep-item{font-size:.72rem;padding:6px 9px;border-radius:3px;border:1px solid var(--rule);display:flex;align-items:center;gap:6px;color:var(--ink2)}
+.ep-item.complete{background:var(--safe-bg);border-color:var(--safe-border);color:var(--safe)}
+.ep-item.partial{background:var(--warn-bg);border-color:var(--warn-border);color:var(--warn)}
+.ep-item.missing{background:var(--danger-bg);border-color:var(--danger-border);color:var(--danger)}
+
+.r-disclaimer{background:var(--paper);border:1px solid var(--rule);border-radius:5px;padding:14px 16px;margin-top:20px;font-size:.72rem;color:var(--ink3);line-height:1.7}
+
+.r-foot{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+.btn-print{background:var(--ink);color:var(--white);border:none;padding:11px 22px;border-radius:3px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:var(--sans);transition:opacity .15s}
+.btn-print:hover{opacity:.85}
+.btn-restart{background:transparent;border:1.5px solid var(--rule);color:var(--ink2);padding:11px 20px;border-radius:3px;font-size:.8rem;cursor:pointer;font-family:var(--sans);font-weight:500;transition:all .15s}
+.btn-restart:hover{border-color:var(--ink3);color:var(--ink)}
+
+/* ─── Animations ─────────────────────────────────────────────────────────── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.pcard{animation:fadeUp .3s ease both}
+.pcard:nth-child(2){animation-delay:.05s}
+.pcard:nth-child(3){animation-delay:.1s}
+.pcard:nth-child(4){animation-delay:.15s}
+.pcard:nth-child(5){animation-delay:.2s}
+.pcard:nth-child(6){animation-delay:.25s}
+
+/* ─── Mobile ─────────────────────────────────────────────────────────────── */
+@media(max-width:768px){
+  #mast-inner{padding:24px 20px}
+  #mast-body{grid-template-columns:1fr}
+  .mast-stat-grid{display:none}
+  #mast-headline h1{font-size:1.9rem}
+  #wrap{grid-template-columns:1fr;padding:20px}
+  #sidebar{position:static}
+  #rail-inner{padding:0 16px}
+  .rail-step .rail-label{display:none}
+  .sector-grid{grid-template-columns:1fr 1fr}
+  .elig-grid{grid-template-columns:1fr}
+  .r-hero-inner{grid-template-columns:1fr;text-align:center}
+  .r-dial{margin:0 auto}
+  .r-stats{grid-template-columns:1fr}
+  .r-breakdown{grid-template-columns:1fr}
+  .ep-grid{grid-template-columns:1fr}
+}
+
+/* ─── Print ──────────────────────────────────────────────────────────────── */
+@media print{
+  #rail,#sidebar,.step-foot,.r-foot,#masthead .mast-tags{display:none!important}
+  body{background:var(--white);font-size:12px}
+  #wrap{display:block;padding:20px}
+  .r-hero{background:var(--ink)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #results-panel{display:block!important}
+  .step-panel{display:none!important}
+  #results-panel.show{display:block!important}
+}
+/* ─── Premium RegTech Interface Upgrade ─────────────────────────────────── */
+:root{
+  --cream:#f3f5f7;
+  --paper:#f8fafb;
+  --white:#ffffff;
+  --ink:#151719;
+  --ink2:#3f454b;
+  --ink3:#69727c;
+  --ink4:#9ca5ae;
+  --rule:#d8dee5;
+  --rule2:#e8edf2;
+  --danger:#a8292f;
+  --danger-bg:#fff4f4;
+  --danger-border:#efc5c8;
+  --warn:#9a650f;
+  --warn-bg:#fff8e6;
+  --warn-border:#efd28a;
+  --safe:#08725f;
+  --safe-bg:#edfdf8;
+  --safe-border:#a9e7d6;
+  --accent:#a8292f;
+  --blue:#2456a6;
+  --shadow-sm:0 1px 2px rgba(21,23,25,.04),0 1px 6px rgba(21,23,25,.05);
+  --shadow-md:0 14px 38px rgba(21,23,25,.08),0 2px 8px rgba(21,23,25,.05);
+  --shadow-lg:0 24px 70px rgba(21,23,25,.13),0 6px 18px rgba(21,23,25,.07);
+}
+
+body{font-size:16px;line-height:1.65;background:linear-gradient(180deg,#eef2f5 0,#f7f8fa 420px,var(--cream) 100%);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+a{color:inherit}
+#masthead{background:linear-gradient(135deg,#111315 0%,#23272b 58%,#17191c 100%);border-bottom:1px solid rgba(255,255,255,.08)}
+#masthead::before{width:58%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.03)),repeating-linear-gradient(135deg,transparent,transparent 13px,rgba(255,255,255,.025) 13px,rgba(255,255,255,.025) 14px)}
+#mast-inner{max-width:1180px;padding:42px 48px 46px}
+#mast-top{margin-bottom:38px;padding-bottom:22px}
+.brand-row{gap:14px}.brand-seal{width:44px;height:44px;border-color:#c4464c;background:rgba(168,41,47,.13);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.brand-text{font-size:.68rem;color:rgba(255,255,255,.55)}.brand-text strong{font-size:.86rem;color:#fff}
+.mast-tags{gap:9px}.mast-tag{border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.045);border-radius:999px;padding:5px 11px;color:rgba(255,255,255,.62)}
+.mast-tag.live{background:rgba(168,41,47,.18);border-color:rgba(244,142,147,.45);color:#ffc7ca}
+#mast-body{grid-template-columns:minmax(0,1fr) 260px;gap:56px;align-items:end}
+#mast-headline .overline{font-size:.66rem;color:rgba(255,255,255,.52);margin-bottom:16px}
+#mast-headline h1{font-size:clamp(2.35rem,4.2vw,4.05rem);letter-spacing:0;max-width:720px;margin-bottom:18px}
+#mast-headline h1 em{color:#f08d91;text-shadow:0 0 34px rgba(168,41,47,.28)}
+#mast-headline p{font-size:.98rem;max-width:650px;color:rgba(255,255,255,.68)}
+.mast-stat-grid{min-width:250px;border-color:rgba(255,255,255,.14);border-radius:8px;background:rgba(255,255,255,.045);box-shadow:0 18px 48px rgba(0,0,0,.18);backdrop-filter:blur(10px)}
+.mast-stat{padding:15px 18px}.ms-label{font-size:.58rem}.ms-val{font-size:.88rem}.ms-sub{font-size:.64rem}
+
+#rail{background:rgba(255,255,255,.92);backdrop-filter:blur(14px);box-shadow:0 1px 0 var(--rule),0 10px 30px rgba(21,23,25,.06)}
+#rail-inner{max-width:1180px;padding:0 48px;scrollbar-width:thin}.rail-step{padding:15px 18px;opacity:.48;border-bottom-width:3px;font-size:.78rem;letter-spacing:0}
+.rail-step:hover{background:var(--paper);opacity:.9}.rail-step.active{background:#fff;box-shadow:inset 0 -1px 0 #fff}.rail-num{width:23px;height:23px;font-size:.62rem}.rail-step.active .rail-num{box-shadow:0 5px 14px rgba(168,41,47,.22)}
+#rail-progress{height:3px}#rail-fill{background:linear-gradient(90deg,#a8292f,#d85f66)}
+
+#wrap{max-width:1180px;padding:44px 48px 110px;grid-template-columns:minmax(0,1fr) 330px;gap:34px}
+#sidebar{top:68px;border-color:var(--rule);border-radius:8px;box-shadow:var(--shadow-md);overflow:hidden;background:rgba(255,255,255,.96)}
+.sb-section{padding:21px 22px}.sb-heading{font-size:.62rem;color:#7d8790;margin-bottom:14px}.sq-text{font-size:.8rem}.sq-attr{font-size:.62rem}
+#meter-arc-wrap{width:158px;height:82px}.arc-bg,.arc-fill{stroke-width:11}#meter-val{font-size:2.15rem}#meter-desc{font-size:.75rem;color:var(--ink3)}
+.hmap{gap:7px}.hmap-cell{border-radius:6px;padding:9px 10px;background:#fff}.hmap-cell .hc-name{font-size:.69rem}.hmap-cell .hc-status{font-size:.56rem}
+.sbar{margin-bottom:12px}.sbar-top{font-size:.72rem}.sbar-track{height:5px;background:#edf1f5}.sbar-fill{border-radius:999px}.method-row{font-size:.74rem;padding:5px 0}
+
+.section-eyebrow{font-size:.64rem;color:#7d8790;margin-bottom:8px}.section-title{font-size:clamp(1.55rem,2.1vw,2rem);letter-spacing:0;margin-bottom:8px}.section-sub{font-size:.9rem;max-width:760px;color:var(--ink2);margin-bottom:26px}
+.card,.pcard,.r-stat,.rb-card,.evid-pack,.action-item{border-color:var(--rule);border-radius:8px;box-shadow:var(--shadow-sm);background:#fff}.card:hover,.pcard:hover{box-shadow:var(--shadow-md)}
+.card[style*="padding"]{padding:26px!important}.sector-grid{gap:11px}.sec-btn{border-radius:8px;padding:17px 15px;background:#fff;border-color:#dbe2e9;box-shadow:0 1px 0 rgba(21,23,25,.03);min-height:112px}
+.sec-btn:hover{transform:translateY(-1px);border-color:#b8c2cc;box-shadow:var(--shadow-sm)}.sec-btn.active{background:linear-gradient(180deg,#fff8f8,#fff);border-color:#bf4c52;box-shadow:0 0 0 3px rgba(168,41,47,.09),var(--shadow-sm)}
+.sec-btn .sb-icon{font-size:1.45rem;margin-bottom:9px}.sec-btn .sb-name{font-size:.82rem}.sec-btn .sb-risk{font-size:.6rem}
+.elig-grid{gap:11px}.elig-card{border-radius:8px;padding:18px 14px;background:#fff;border-color:#dbe2e9;box-shadow:0 1px 0 rgba(21,23,25,.03)}.elig-card:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm)}.elig-card.on{background:#fff7f7;border-color:#bf4c52;box-shadow:0 0 0 3px rgba(168,41,47,.09)}
+.elig-result{border-radius:8px;padding:14px 16px;font-size:.83rem}.ec-thresh{font-size:.78rem}.ec-label{font-size:.76rem}
+
+.pcard-head{padding:21px 24px}.pcard-left{gap:16px}.pcard-num{width:36px;height:36px}.pcard-title{font-size:1rem}.pcard-sub{font-size:.76rem}.pcard-badge{border-radius:999px;padding:5px 11px;font-size:.6rem}.pcard-intro{padding:17px 24px;font-size:.84rem;background:#f8fafb}.sfo-alert{border-radius:999px;padding:6px 11px;font-size:.61rem}
+.question{padding:23px 24px}.q-meta{margin-bottom:10px}.q-meta-num{font-size:.61rem}.q-sfo-badge{border-radius:999px;padding:3px 8px}.q-text{font-size:.93rem;margin-bottom:10px}.q-context{font-size:.8rem;padding:10px 13px;background:#f8fafb;border-left-color:#cbd4de}.opts{gap:8px}.opt{border-radius:999px;padding:9px 17px;background:#fff;font-size:.8rem;border-color:#d6dee6;box-shadow:0 1px 0 rgba(21,23,25,.03)}.opt:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm)}
+.opt.yes,.opt.partial,.opt.no,.opt.na{box-shadow:0 0 0 3px rgba(21,23,25,.04)}.q-action,.q-prose-risk{border-radius:6px;padding:12px 15px;font-size:.79rem}.q-action strong{font-size:.6rem}
+.step-foot{margin-top:24px;padding-top:24px}.btn-back,.btn-next,.btn-print,.btn-restart{border-radius:8px;min-height:42px;font-size:.84rem;box-shadow:0 1px 0 rgba(21,23,25,.04)}.btn-back,.btn-restart{background:#fff}.btn-back:hover,.btn-restart:hover{background:var(--paper);box-shadow:var(--shadow-sm)}.btn-next,.btn-print{background:linear-gradient(135deg,#151719,#30353a);box-shadow:0 9px 22px rgba(21,23,25,.16)}.btn-next:hover,.btn-print:hover{opacity:1;transform:translateY(-1px)}.step-counter{font-size:.68rem}
+
+.r-hero{border-radius:10px;padding:42px;background:linear-gradient(135deg,#111315,#2a2e33 65%,#181a1d);box-shadow:var(--shadow-lg)}.r-hero-inner{gap:34px}.r-dial{width:118px;height:118px;border-width:4px;background:rgba(255,255,255,.04);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}.r-dial .rd-num{font-size:2.25rem}.r-verdict h2{font-size:1.75rem}.r-verdict p{font-size:.93rem;color:rgba(255,255,255,.72)}.r-quote{font-size:.82rem;border-radius:0 6px 6px 0}.r-meta{font-size:.63rem;color:rgba(255,255,255,.42)}
+.r-stats{gap:14px}.r-stat{padding:19px}.rs-label{font-size:.6rem}.rs-val{font-size:1.65rem}.rs-sub{font-size:.72rem}.r-breakdown{gap:12px}.rb-card{padding:17px}.rb-track{height:5px}.rb-fill{border-radius:999px}.r-actions h3{font-size:1.25rem}.action-item{border-radius:8px;padding:16px 18px;gap:14px}.ai-num{width:30px;height:30px}.ai-body .ai-title{font-size:.86rem}.ai-body .ai-desc{font-size:.79rem}.ai-timeline{border-radius:999px;padding:3px 9px}.evid-pack{padding:20px}.ep-title{font-size:1.08rem}.ep-grid{gap:8px}.ep-item{border-radius:6px;padding:8px 10px;font-size:.77rem}.r-disclaimer{border-radius:8px;padding:16px 18px;font-size:.76rem;background:#fff}.r-foot{gap:12px}
+
+button,.sec-btn,.elig-card,.rail-step,.opt,.pcard-head{touch-action:manipulation}.btn-back:focus-visible,.btn-next:focus-visible,.btn-print:focus-visible,.btn-restart:focus-visible,.sec-btn:focus-visible,.elig-card:focus-visible,.rail-step:focus-visible,.opt:focus-visible{outline:3px solid rgba(36,86,166,.35);outline-offset:3px}
+
+@media(max-width:900px){
+  #mast-inner{padding:32px 24px 36px}#mast-top{align-items:flex-start;gap:18px;flex-direction:column}#mast-body{grid-template-columns:1fr;gap:26px}.mast-stat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));min-width:0}.mast-stat{border-right:1px solid rgba(255,255,255,.08)}.mast-stat:nth-child(2n){border-right:none}
+  #wrap{grid-template-columns:1fr;padding:28px 22px 80px}#sidebar{position:static;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0}.sb-section:nth-child(odd){border-right:1px solid var(--rule2)}
+}
+@media(max-width:768px){
+  body{font-size:15px}#mast-inner{padding:26px 18px 30px}#mast-headline h1{font-size:2.25rem}.mast-tags{width:100%}.mast-tag{font-size:.56rem}.mast-stat-grid{display:none}#rail-inner{padding:0 12px}.rail-step{padding:13px 14px}.rail-num{width:24px;height:24px}.rail-step .rail-label{display:none}#wrap{padding:22px 16px 72px;gap:22px}.card[style*="padding"]{padding:20px!important}.sector-grid{grid-template-columns:1fr 1fr;gap:9px}.sec-btn{min-height:104px;padding:14px 12px}.elig-grid{grid-template-columns:1fr}.pcard-head{padding:18px;align-items:flex-start;gap:12px}.pcard-left{align-items:flex-start}.pcard-badge{margin-top:2px}.question{padding:18px}.opts{display:grid;grid-template-columns:1fr}.opt{text-align:center}.step-foot{display:grid;grid-template-columns:1fr;gap:12px;text-align:center}.step-foot .btn-back{order:2}.step-foot .step-counter{order:1}.step-foot .btn-next{order:3}.btn-back,.btn-next{width:100%}#sidebar{display:block}.sb-section{border-right:none!important}.r-hero{padding:28px 22px}.r-verdict h2{font-size:1.45rem}.r-stats,.r-breakdown,.ep-grid{grid-template-columns:1fr}.action-item{grid-template-columns:1fr}.ai-num{margin-bottom:2px}
+}
+@media(max-width:420px){
+  #mast-headline h1{font-size:1.95rem}.brand-row{align-items:flex-start}.brand-seal{width:40px;height:40px}.brand-text strong{font-size:.78rem}.sector-grid{grid-template-columns:1fr}.section-title{font-size:1.45rem}.pcard-head{display:block}.pcard-left{margin-bottom:12px}.pcard-badge{display:inline-block}.q-meta{align-items:flex-start;flex-direction:column}.r-dial{width:104px;height:104px}.r-dial .rd-num{font-size:2rem}
+}
+@media print{
+  @page{margin:14mm}
+  *{box-shadow:none!important;text-shadow:none!important;animation:none!important;transition:none!important}
+  html,body{background:#fff!important;color:#111!important;font-size:10.5pt;line-height:1.45}
+  #masthead{display:block!important;background:#fff!important;color:#111!important;border-bottom:2px solid #111;margin-bottom:14px}
+  #masthead::before,#rail,#sidebar,.step-foot,.r-foot{display:none!important}
+  #mast-inner{max-width:none;padding:0 0 12px!important}#mast-top{display:block;border-bottom:1px solid #bbb;margin-bottom:10px;padding-bottom:8px}.brand-row{display:block}.brand-seal,.mast-tags,.mast-stat-grid{display:none!important}.brand-text,.brand-text strong{color:#111!important;letter-spacing:.08em}#mast-body{display:block}#mast-headline .overline{color:#555!important}#mast-headline h1{font-size:24pt;color:#111!important;margin:0 0 8px}#mast-headline h1 em{color:#111!important}#mast-headline p{max-width:none;color:#333!important;font-size:10pt}
+  #wrap{display:block;max-width:none;padding:0!important}.step-panel{display:none!important}#results-panel{display:block!important}.r-hero{background:#fff!important;color:#111!important;border:2px solid #111;border-radius:0;padding:14px!important;margin-bottom:12px}.r-hero::after{display:none}.r-hero-inner{display:grid;grid-template-columns:90px 1fr;gap:14px}.r-dial{width:82px;height:82px;color:#111!important;border-color:#111!important}.r-dial .rd-num{font-size:20pt}.r-verdict h2{color:#111!important;font-size:16pt}.r-verdict p,.r-meta{color:#333!important}.r-quote{border-left:2px solid #111;background:#fff!important;color:#111!important}.r-stats,.r-breakdown,.ep-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.r-stat,.rb-card,.evid-pack,.action-item,.r-disclaimer{break-inside:avoid;border:1px solid #bbb!important;border-radius:0;background:#fff!important;padding:9px!important}.rs-val,.rb-score{color:#111!important}.rb-track,.rb-fill{border:1px solid #999;background:#fff!important}.r-actions h3{font-size:13pt}.action-item{display:grid;grid-template-columns:24px 1fr}.ai-num{border:1px solid #111;background:#fff!important;color:#111!important}.ai-timeline,.ep-item{border:1px solid #bbb!important;background:#fff!important;color:#111!important}.r-disclaimer{font-size:8.5pt;color:#333!important}
+}
+/* ─── Report Metadata, Disclaimer, CTA & PDF Enhancements ──────────────── */
+.client-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.field-label{display:block;font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;color:var(--ink4);margin-bottom:7px;text-transform:uppercase}
+.meta-input{width:100%;border:1.5px solid var(--rule);border-radius:8px;background:#fff;color:var(--ink);font-family:var(--sans);font-size:.92rem;padding:12px 13px;box-shadow:0 1px 0 rgba(21,23,25,.03);transition:border-color .15s,box-shadow .15s}
+.meta-input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(36,86,166,.16)}
+.legal-notice{border:1px solid var(--warn-border);background:linear-gradient(180deg,#fffaf0,#fff);border-radius:8px;padding:16px 18px;margin-bottom:18px;color:#6f4a0e;box-shadow:var(--shadow-sm)}
+.legal-notice-title{font-family:var(--mono);font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;color:var(--warn);font-weight:700;margin-bottom:6px}
+.legal-notice p{font-size:.82rem;line-height:1.65;color:#6f4a0e;margin:0}
+.r-client-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.rcm-item{background:#fff;border:1px solid var(--rule);border-radius:8px;padding:13px 15px;box-shadow:var(--shadow-sm)}
+.rcm-label{font-family:var(--mono);font-size:.58rem;letter-spacing:.12em;color:var(--ink4);margin-bottom:5px;text-transform:uppercase}
+.rcm-value{font-size:.88rem;font-weight:600;color:var(--ink);overflow-wrap:anywhere}
+.r-cta{margin-top:20px;background:linear-gradient(135deg,#151719,#2d3237);color:#fff;border-radius:10px;padding:24px;box-shadow:var(--shadow-lg);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:center;position:relative;overflow:hidden}
+.r-cta::after{content:'';position:absolute;top:0;right:0;width:34%;height:100%;background:repeating-linear-gradient(135deg,transparent,transparent 12px,rgba(255,255,255,.035) 12px,rgba(255,255,255,.035) 13px);pointer-events:none}
+.r-cta-body{position:relative}.r-cta-kicker{font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;color:#f7b4b8;text-transform:uppercase;margin-bottom:7px}.r-cta-title{font-family:var(--serif);font-size:1.25rem;font-weight:700;margin-bottom:7px;color:#fff}.r-cta-copy{font-size:.86rem;color:rgba(255,255,255,.72);line-height:1.65;max-width:660px}.r-cta-actions{position:relative;display:flex;gap:10px;flex-wrap:wrap}.btn-cta{background:#fff;color:#151719;border:none;border-radius:8px;padding:11px 18px;font-family:var(--sans);font-size:.84rem;font-weight:700;cursor:pointer;box-shadow:0 10px 24px rgba(0,0,0,.2)}.btn-cta.secondary{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.24)}
+@media(max-width:768px){.client-grid,.r-client-meta,.r-cta{grid-template-columns:1fr}.r-cta-actions{width:100%}.btn-cta{width:100%}}
+@media print{
+  .client-grid,.legal-notice{break-inside:avoid}.legal-notice{border:1px solid #777!important;background:#fff!important;color:#111!important;padding:8px!important;margin-bottom:8px}.legal-notice-title,.legal-notice p{color:#111!important}
+  .r-client-meta{display:grid!important;grid-template-columns:repeat(3,1fr)!important;gap:6px!important;margin:0 0 8px!important}.rcm-item{border:1px solid #777!important;border-radius:0!important;background:#fff!important;padding:7px!important}.rcm-label{color:#444!important}.rcm-value{font-size:9pt!important;color:#111!important}
+  .r-cta{break-inside:avoid;background:#fff!important;color:#111!important;border:1px solid #777!important;border-radius:0!important;padding:9px!important;display:block!important}.r-cta::after,.r-cta-actions{display:none!important}.r-cta-kicker,.r-cta-title,.r-cta-copy{color:#111!important}.r-cta-title{font-size:12pt!important;margin-bottom:3px!important}.r-cta-copy{font-size:9pt!important;max-width:none!important}
+}
+/* ─── Footer ────────────────────────────────────────────────────────────── */
+#site-footer{max-width:1180px;margin:-64px auto 0;padding:0 48px 40px;color:var(--ink3)}
+.footer-inner{border-top:1px solid var(--rule);padding-top:18px;display:flex;align-items:flex-start;justify-content:space-between;gap:18px;font-size:.74rem;line-height:1.65}
+.footer-credit{font-weight:600;color:var(--ink2)}
+.footer-source,.footer-rights{font-family:var(--mono);font-size:.62rem;letter-spacing:.04em;color:var(--ink4)}
+@media(max-width:768px){#site-footer{margin:-40px auto 0;padding:0 16px 32px}.footer-inner{display:block;font-size:.72rem}.footer-source,.footer-rights{margin-top:6px;font-size:.58rem}}
+@media print{#site-footer{max-width:none;margin:8px 0 0!important;padding:8px 0 0!important;color:#333!important}.footer-inner{border-top:1px solid #999!important;display:block!important;font-size:8.5pt!important;line-height:1.35!important}.footer-credit,.footer-source,.footer-rights{color:#333!important;font-size:8.5pt!important;font-family:Arial,sans-serif!important;letter-spacing:0!important}}
+/* ─── Modern Sans Typography Refinement ─────────────────────────────────── */
+.brand-text,.mast-tag,#mast-headline .overline,.ms-label,.ms-sub,.rail-num,.sb-heading,.hmap-cell .hc-status,.sbar-top span:last-child,.method-row span:last-child,.sq-attr,.section-eyebrow,.sec-btn .sb-risk,.elig-card .ec-thresh,.pcard-num,.pcard-badge,.sfo-alert,.q-meta-num,.q-sfo-badge,.q-action strong,.step-counter,.r-dial .rd-lbl,.r-meta,.rs-label,.rb-name,.r-actions h3 span,.ai-num,.ai-timeline,.field-label,.legal-notice-title,.rcm-label,.r-cta-kicker,.footer-source,.footer-rights{font-family:var(--mono);font-weight:700;letter-spacing:.08em}
+.brand-text,.sq-attr,.r-meta,.footer-source,.footer-rights{font-weight:500}
+.rail-num,.pcard-num,.ai-num{letter-spacing:0}
+/* ─── Minimal rail and SFO alert fixes ─────────────────────────────────── */
+#rail-progress,#rail-fill{display:none!important}
+#rail-inner{scrollbar-width:none!important;-ms-overflow-style:none!important}
+#rail-inner::-webkit-scrollbar{display:none!important;width:0!important;height:0!important}
+.pcard-intro-text{display:block}
+.sfo-alert{display:flex;width:fit-content;max-width:100%;margin-top:12px;align-items:flex-start;white-space:normal;flex-wrap:wrap;line-height:1.45;overflow-wrap:anywhere}
+@media(max-width:768px){.sfo-alert{width:100%;max-width:100%}}
+/* ─── Figure-only Cormorant typography ─────────────────────────────────── */
+#meter-val,.r-dial .rd-num,.rs-val{font-family:var(--sans)}
+/* ─── Enterprise SVG card icons ─────────────────────────────────────────── */
+.sb-icon,.ec-icon{width:26px;height:26px;display:block;margin-bottom:8px;color:var(--ink3)}
+.ec-icon{margin-left:auto;margin-right:auto}
+.sb-icon svg,.ec-icon svg{width:100%;height:100%;display:block;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.sec-btn.active .sb-icon,.elig-card.on .ec-icon{color:var(--danger)}
+</style>
+</head>
+<body>
+
+<!-- ── Masthead ─────────────────────────────────────────────────────────── -->
+<div id="masthead">
+  <div id="mast-inner">
+    <div id="mast-top">
+      <div class="brand-row">
+        <div class="brand-seal">⚖</div>
+        <div class="brand-text">
+          <strong>FTPF DEFENCE ANALYSER</strong>
+          UK Corporate Fraud Prevention Assessment
+        </div>
+      </div>
+      <div class="mast-tags">
+        <span class="mast-tag">ECCTA 2023</span>
+        <span class="mast-tag">S.199</span>
+        <span class="mast-tag">HOME OFFICE GUIDANCE</span>
+      </div>
+    </div>
+    <div id="mast-body">
+      <div id="mast-headline">
+        <span class="overline">CORPORATE CRIMINAL LIABILITY ASSESSMENT</span>
+        <h1>How strong is your<br><em>fraud prevention</em> defence?</h1>
+        <p>A free interactive assessment tool analysing your organisation's readiness under the UK's Failure to Prevent Fraud offence, with sector-weighted risk scoring, principle-by-principle analysis, and a personalised evidence pack.</p>
+      </div>
+      <div class="mast-stat-grid">
+        <div class="mast-stat">
+          <div class="ms-label">IN FORCE SINCE</div>
+          <div class="ms-val danger">01 September 2025</div>
+        </div>
+        <div class="mast-stat">
+          <div class="ms-label">MAXIMUM PENALTY</div>
+          <div class="ms-val danger">Unlimited fine</div>
+        </div>
+        <div class="mast-stat">
+          <div class="ms-label">GOVERNING LAW</div>
+          <div class="ms-val safe">ECCTA 2023, S.199</div>
+        </div>
+        <div class="mast-stat">
+          <div class="ms-label">SFO STATEMENT (2025)</div>
+          <div class="ms-val warn">"We're coming after them"</div>
+          <div class="ms-sub">- Former SFO Director Nick Ephgrave</div>
+        </div>
+        <div class="mast-stat">
+          <div class="ms-label">SOURCE</div>
+          <div class="ms-val safe"><a href="https://www.gov.uk/government/publications/offence-of-failure-to-prevent-fraud-introduced-by-eccta/economic-crime-and-corporate-transparency-act-2023-guidance-to-organisations-on-the-offence-of-failure-to-prevent-fraud-accessible-version" target="_blank" style="color:inherit;text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(110,231,183,.4)">Home Office Guidance ↗</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Progress rail ────────────────────────────────────────────────────── -->
+<div id="rail">
+  <div id="rail-inner">
+    <div class="rail-step active" id="pnav-0" onclick="goStep(0)"><div class="rail-num">0</div><span class="rail-label">Sector & Scope</span></div>
+    <div class="rail-step" id="pnav-1" onclick="goStep(1)"><div class="rail-num">1</div><span class="rail-label">Commitment</span></div>
+    <div class="rail-step" id="pnav-2" onclick="goStep(2)"><div class="rail-num">2</div><span class="rail-label">Risk Assessment</span></div>
+    <div class="rail-step" id="pnav-3" onclick="goStep(3)"><div class="rail-num">3</div><span class="rail-label">Procedures</span></div>
+    <div class="rail-step" id="pnav-4" onclick="goStep(4)"><div class="rail-num">4</div><span class="rail-label">Due Diligence</span></div>
+    <div class="rail-step" id="pnav-5" onclick="goStep(5)"><div class="rail-num">5</div><span class="rail-label">Training</span></div>
+    <div class="rail-step" id="pnav-6" onclick="goStep(6)"><div class="rail-num">6</div><span class="rail-label">Monitoring</span></div>
+    <div class="rail-step" id="pnav-7"><div class="rail-num">✓</div><span class="rail-label">Results</span></div>
+  </div>
+
+</div>
+
+<!-- ── Main grid ─────────────────────────────────────────────────────────── -->
+<div id="wrap">
+
+  <!-- Content -->
+  <div id="content">
+
+    <!-- Step 0: Sector + Eligibility -->
+    <div class="step-panel active" id="step-0">
+
+      <span class="section-eyebrow">STEP ONE OF SIX</span>
+      <div class="section-title">Sector &amp; organisational scope</div>
+      <div class="section-sub">Your sector influences how closely the SFO is likely to scrutinise your organisation. Select the option that best describes your primary business activity.</div>
+
+      <div class="legal-notice">
+        <div class="legal-notice-title">Important legal notice</div>
+        <p>This tool provides a structured readiness assessment based on publicly available guidance. It is not legal advice, does not create a solicitor-client relationship, and should not be relied upon as a legal opinion on whether reasonable procedures exist. Seek independent legal advice before making compliance, reporting, or governance decisions.</p>
+      </div>
+
+      <div class="card" style="padding:22px">
+        <div style="font-size:.78rem;font-weight:600;color:var(--ink);margin-bottom:4px">Assessment details</div>
+        <div style="font-size:.74rem;color:var(--ink3);margin-bottom:14px">Optional details used in the results report and print/PDF output</div>
+        <div class="client-grid">
+          <label>
+            <span class="field-label">Organisation name</span>
+            <input class="meta-input" id="org-name" type="text" autocomplete="organization" placeholder="Enter organisation name" oninput="updateMeta('orgName',this.value)">
+          </label>
+          <label>
+            <span class="field-label">Assessor name</span>
+            <input class="meta-input" id="assessor-name" type="text" autocomplete="name" placeholder="Enter assessor name" oninput="updateMeta('assessorName',this.value)">
+          </label>
+        </div>
+      </div>
+
+      <div class="card" style="padding:22px">
+        <div style="font-size:.78rem;font-weight:600;color:var(--ink);margin-bottom:4px">Select your sector</div>
+        <div style="font-size:.74rem;color:var(--ink3);margin-bottom:14px">Adjusts prosecution exposure weighting in your results</div>
+        <div class="sector-grid">
+          <div class="sec-btn" data-sector="financial" onclick="setSector(this)">
+            <span class="sb-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 9h18"/><path d="M5 9v10"/><path d="M9 9v10"/><path d="M15 9v10"/><path d="M19 9v10"/><path d="M4 19h16"/><path d="M12 4 4 9h16L12 4Z"/></svg></span>
+            <span class="sb-name">Financial Services</span>
+            <span class="sb-risk h">↑ HIGH RISK</span>
+          </div>
+          <div class="sec-btn" data-sector="professional" onclick="setSector(this)">
+            <span class="sb-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M5 7h14"/><path d="M7 7 4 14h6L7 7Z"/><path d="M17 7l-3 7h6l-3-7Z"/><path d="M8 21h8"/></svg></span>
+            <span class="sb-name">Professional Services</span>
+            <span class="sb-risk h">↑ HIGH RISK</span>
+          </div>
+          <div class="sec-btn" data-sector="construction" onclick="setSector(this)">
+            <span class="sb-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M6 20V8h12v12"/><path d="M9 20v-5h6v5"/><path d="M8 11h2"/><path d="M14 11h2"/><path d="M8 4h8"/><path d="M12 4v4"/></svg></span>
+            <span class="sb-name">Construction</span>
+            <span class="sb-risk h">↑ HIGH RISK</span>
+          </div>
+          <div class="sec-btn" data-sector="retail" onclick="setSector(this)">
+            <span class="sb-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 8h12l-1 12H7L6 8Z"/><path d="M9 8a3 3 0 0 1 6 0"/><path d="M9 13h6"/></svg></span>
+            <span class="sb-name">Retail &amp; Consumer</span>
+            <span class="sb-risk m">→ MEDIUM RISK</span>
+          </div>
+          <div class="sec-btn" data-sector="technology" onclick="setSector(this)">
+            <span class="sb-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="11" rx="1.5"/><path d="M8 20h8"/><path d="M12 16v4"/></svg></span>
+            <span class="sb-name">Technology</span>
+            <span class="sb-risk m">→ MEDIUM RISK</span>
+          </div>
+          <div class="sec-btn" data-sector="other" onclick="setSector(this)">
+            <span class="sb-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/><path d="M9 7h1"/><path d="M14 7h1"/><path d="M9 11h1"/><path d="M14 11h1"/><path d="M9 15h1"/><path d="M14 15h1"/><path d="M3 21h18"/></svg></span>
+            <span class="sb-name">Other / General</span>
+            <span class="sb-risk l">↓ STANDARD</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="padding:22px">
+        <div style="font-size:.78rem;font-weight:600;color:var(--ink);margin-bottom:4px">Eligibility check</div>
+        <div style="font-size:.74rem;color:var(--ink3);margin-bottom:14px">Large organisations meeting 2 or more of the following criteria are in scope. Select all that apply, including subsidiaries.</div>
+        <div class="elig-grid">
+          <div class="elig-card" id="e1" onclick="toggleE('e1')">
+            <span class="ec-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 7h7a4 4 0 0 1 0 8H9"/><path d="M8 11h6"/><path d="M9 5v14"/><path d="M6 19h10"/></svg></span>
+            <div class="ec-thresh">&gt; £36m</div>
+            <div class="ec-label">Annual turnover</div>
+          </div>
+          <div class="elig-card" id="e2" onclick="toggleE('e2')">
+            <span class="ec-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 9h18"/><path d="M5 9v10"/><path d="M9 9v10"/><path d="M15 9v10"/><path d="M19 9v10"/><path d="M4 19h16"/><path d="M12 4 4 9h16L12 4Z"/></svg></span>
+            <div class="ec-thresh">&gt; £18m</div>
+            <div class="ec-label">Total assets</div>
+          </div>
+          <div class="elig-card" id="e3" onclick="toggleE('e3')">
+            <span class="ec-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M16 20v-2a4 4 0 0 0-8 0v2"/><circle cx="12" cy="8" r="3"/><path d="M22 20v-2a4 4 0 0 0-3-3.87"/><path d="M16 5.13a3 3 0 0 1 0 5.74"/><path d="M2 20v-2a4 4 0 0 1 3-3.87"/><path d="M8 5.13a3 3 0 0 0 0 5.74"/></svg></span>
+            <div class="ec-thresh">&gt; 250</div>
+            <div class="ec-label">Employees</div>
+          </div>
+        </div>
+        <div id="elig-res" class="elig-result"></div>
+      </div>
+
+      <div class="step-foot">
+        <div></div>
+        <div class="step-counter">Step 0 of 6</div>
+        <button class="btn-next" onclick="goStep(1)">Begin Assessment →</button>
+      </div>
+    </div>
+
+    <!-- Steps 1–6: dynamically built -->
+    <div id="principle-steps"></div>
+
+    <!-- Results -->
+    <div id="results-panel"></div>
+
+  </div>
+
+  <!-- Sidebar -->
+  <div id="sidebar">
+
+    <div class="sb-section">
+      <div class="sb-heading">Prosecution Exposure</div>
+      <div id="meter-wrap">
+        <svg id="meter-arc-wrap" viewBox="0 0 140 72" xmlns="http://www.w3.org/2000/svg" width="140" height="72" style="display:block;margin:0 auto 8px">
+          <path d="M14,68 A56,56 0 0,1 126,68" class="arc-bg"/>
+          <path id="gauge-arc" d="M14,68 A56,56 0 0,1 126,68" class="arc-fill" stroke="#b91c1c" stroke-dasharray="175" stroke-dashoffset="175"/>
+        </svg>
+        <span id="meter-val" style="color:var(--ink)">—</span>
+        <div id="meter-desc">Complete the assessment to see your exposure rating</div>
+      </div>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-heading">Principle Heatmap</div>
+      <div class="hmap">
+        <div class="hmap-cell" id="hm-0"><div class="hc-name">Commitment</div><div class="hc-status">—</div></div>
+        <div class="hmap-cell" id="hm-1"><div class="hc-name">Risk Assessment</div><div class="hc-status">—</div></div>
+        <div class="hmap-cell" id="hm-2"><div class="hc-name">Procedures</div><div class="hc-status">—</div></div>
+        <div class="hmap-cell" id="hm-3"><div class="hc-name">Due Diligence</div><div class="hc-status">—</div></div>
+        <div class="hmap-cell" id="hm-4"><div class="hc-name">Training</div><div class="hc-status">—</div></div>
+        <div class="hmap-cell" id="hm-5"><div class="hc-name">Monitoring</div><div class="hc-status">—</div></div>
+      </div>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-heading">Live Scores</div>
+      <div id="score-bars"><div style="font-size:.7rem;color:var(--ink4);font-style:italic">Answer questions to see scores</div></div>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-heading">Scoring Methodology</div>
+      <div class="method-row"><span>Yes / N/A</span><span>2 pts</span></div>
+      <div class="method-row"><span>Partial</span><span>1 pt</span></div>
+      <div class="method-row"><span>No</span><span>0 pts</span></div>
+      <div style="margin-top:10px;font-family:var(--mono);font-size:.57rem;color:var(--ink4);letter-spacing:.08em;margin-bottom:6px">SECTOR MULTIPLIERS</div>
+      <div class="method-row"><span>Financial Services</span><span>×1.4</span></div>
+      <div class="method-row"><span>Professional / Construction</span><span>×1.2</span></div>
+      <div class="method-row"><span>Retail / Technology</span><span>×1.0</span></div>
+      <div class="method-row"><span>Other</span><span>×0.9</span></div>
+      <div style="margin-top:8px;font-size:.65rem;color:var(--ink4);font-style:italic">Exposure = (1 − score) × 100 × multiplier. Indicative only.</div>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-heading">SFO Warning (2025)</div>
+      <div class="sq-text">"Come September, if they haven't sorted themselves out, we're coming after them."</div>
+      <div class="sq-attr">— Former SFO Director Nick Ephgrave (2025)</div>
+    </div>
+
+  </div>
+</div>
+
+<footer id="site-footer">
+  <div class="footer-inner">
+    <div class="footer-credit">Built by Rishabh Singh · © 2026</div>
+    <div>
+      <div class="footer-source">Based on: ECCTA 2023 S.199 · Home Office Guidance (6 Nov 2024)</div>
+      <div class="footer-rights">This tool is original work. Legal source material is Crown Copyright.</div>
+    </div>
+  </div>
+</footer>
+<script>
+const SECTORS={financial:{name:"Financial Services",multiplier:1.4},professional:{name:"Professional Services",multiplier:1.2},construction:{name:"Construction",multiplier:1.2},retail:{name:"Retail & Consumer",multiplier:1.0},technology:{name:"Technology",multiplier:1.0},other:{name:"General",multiplier:0.9}};
+const PRINCIPLES=[
+  {title:"Top-Level Commitment",subtitle:"Board and senior management leadership",intro:"This principle is listed first in the Home Office guidance — the SFO is likely to look here first. A board-approved policy with named accountable leadership is the foundation of everything else.",sfoFlag:"Board minutes and governance records are likely a primary focus in any SFO review"},
+  {title:"Risk Assessment",subtitle:"Documented, dynamic, and specific",intro:"The guidance states it will rarely be considered reasonable not to have conducted a risk assessment. This must focus on fraud for the organisation's benefit — not just fraud against it. Existing fraud risk assessments are likely insufficient.",sfoFlag:"A dedicated outward-fraud risk assessment is central to establishing reasonable procedures"},
+  {title:"Prevention Procedures",subtitle:"Risk-based, tailored, and documented",intro:"Generic off-the-shelf policies are unlikely to suffice. The guidance explicitly warns that existing regulatory compliance does not automatically constitute reasonable procedures. Each procedure must map to a specific risk.",sfoFlag:"Relying on existing regulatory compliance alone may not constitute reasonable procedures"},
+  {title:"Due Diligence",subtitle:"Third parties, agents, and M&A",intro:"The SFO particularly focuses on third-party relationships. M&A due diligence is a named high-risk area. Liability extends to all associated persons with no need for a formal contract.",sfoFlag:"Third-party and M&A gaps are a known SFO scrutiny area"},
+  {title:"Communication & Training",subtitle:"All staff, all associated persons, ongoing",intro:"Unlike the Bribery Act, ECCTA makes training an explicit standalone commitment. It must be ongoing, cover employee movement, and extend to third-party associated persons.",sfoFlag:"Undocumented training significantly weakens evidence of reasonable procedures"},
+  {title:"Monitoring & Review",subtitle:"Ongoing oversight reported to board",intro:"This is not a one-time exercise. Procedures must be actively monitored, reviewed when incidents occur, and results reported to senior management.",sfoFlag:"Failure to update after known incidents may materially weaken the reasonable procedures defence"},
+];
+const QUESTIONS=[
+  [
+    {q:"Has the board formally approved a fraud prevention policy covering fraud committed for the organisation's benefit?",why:"The SFO is likely to request board minutes. A board-approved policy is the primary evidence of top-level commitment.",sfoRisk:true,action:"Present a fraud prevention policy to the board for formal approval. Ensure it explicitly covers outward fraud for the organisation's benefit, not just fraud against the organisation.",prosecuteRisk:"Absence of a board-approved policy may significantly increase prosecution exposure and could create substantial vulnerability in the reasonable procedures defence."},
+    {q:"Is a named senior manager formally accountable for the fraud prevention programme with documented responsibilities?",why:"ECCTA expanded senior manager attribution. Named accountability with clear documentation is essential.",action:"Formally appoint a named senior manager as fraud prevention lead. Document this in your governance framework and risk committee terms of reference."},
+    {q:"Does senior leadership regularly and visibly communicate a zero-tolerance approach to fraud to all staff and associated persons?",why:"The guidance requires fostering an open culture where attempts to rationalise fraud are challenged proactively.",sfoRisk:true,action:"Schedule recurring all-staff communications from a named C-suite leader. Keep records of dates, channels, and distribution."},
+  ],
+  [
+    {q:"Has your organisation conducted a documented fraud risk assessment specifically focused on fraud committed for the organisation's benefit?",why:"This is the single most important requirement. Existing assessments focused on fraud against the organisation are not sufficient.",sfoRisk:true,action:"Conduct a fresh, dedicated fraud risk assessment applying the fraud triangle to identify where associated persons could commit fraud that benefits the organisation.",prosecuteRisk:"Absence of a dedicated assessment is likely to significantly increase prosecution exposure and may materially weaken any reasonable procedures defence."},
+    {q:"Does the risk assessment cover all associated persons including subsidiaries, contractors, agents, and third parties?",why:"The offence is triggered by any associated person performing services. No contract is required to establish this relationship.",action:"Map all associated persons including informal relationships. Your risk assessment must explicitly consider each category and document the level of control you have over each."},
+    {q:"Is the risk assessment treated as a dynamic document kept under regular review and updated when the business changes?",why:"The guidance explicitly uses the word dynamic. A one-time risk assessment may not establish a defence if circumstances have changed.",sfoRisk:true,action:"Schedule formal annual reviews with ad-hoc reviews triggered by M&A, new products, new geographies, or material business changes. Document each review."},
+  ],
+  [
+    {q:"Are your fraud prevention procedures specifically designed around the risks identified in your risk assessment, not generic templates?",why:"The guidance warns that existing regulatory compliance does not automatically qualify as reasonable procedures.",sfoRisk:true,action:"Review each existing control and map it explicitly to a specific risk in your fraud risk assessment. Document which risks each procedure addresses and why it is proportionate.",prosecuteRisk:"Generic policies without risk mapping may materially weaken the reasonable procedures defence and could create substantial legal vulnerability."},
+    {q:"Does your whistleblowing framework explicitly enable reporting of concerns about fraud committed for the organisation's benefit?",why:"The guidance specifically recommends refreshing or implementing whistleblowing procedures as a key fraud prevention element.",action:"Update whistleblowing policies to explicitly include outward fraud. Ensure anonymous reporting channels exist and are publicised."},
+    {q:"Where your assessment concludes a specific measure is not proportionate, is that decision formally documented with the decision-maker's name?",why:"The guidance requires documentation of decisions not to implement specific measures, including the name of the approving individual.",action:"Create a formal decision log for all instances where you have decided not to implement a specific control. Include rationale, risk level, and the approving senior manager's name."},
+  ],
+  [
+    {q:"Do you apply fraud-specific due diligence to high-risk third parties and agents, using appropriate technology where proportionate?",why:"The guidance cites appropriate technology such as third-party risk management tools as best practice for demonstrating effective due diligence.",sfoRisk:true,action:"Implement structured, documented fraud-specific due diligence for high-risk third parties. Ensure the process is recorded for each high-risk relationship."},
+    {q:"Does your M&A due diligence process include a specific fraud risk assessment of target companies and their associated persons?",why:"The guidance gives special emphasis to M&A, noting extra focus may be placed on whether adequate due diligence was conducted during acquisitions.",action:"Add a mandatory fraud risk assessment to your M&A due diligence checklist covering the target's culture, controls, third-party relationships, and any history of fraud incidents.",na:true},
+    {q:"Are fraud prevention due diligence procedures applied consistently across all subsidiaries, including those outside the UK?",why:"The offence has extraterritorial reach. Fraud committed outside the UK can trigger liability where there is a UK nexus.",action:"Extend fraud prevention due diligence globally. Seek legal advice on how the UK nexus test applies to your offshore structures.",na:true},
+  ],
+  [
+    {q:"Have all relevant staff and associated persons received training specifically covering the FTPF offence and your fraud prevention procedures?",why:"Unlike the Bribery Act, ECCTA makes training an explicit standalone commitment. Documented completion is essential.",sfoRisk:true,action:"Deliver mandatory FTPF training to all employees and high-risk associated persons. Cover what the offence is, examples, how to report concerns, and consequences. Record all completions."},
+    {q:"Is FTPF training mandatory for new employees on onboarding and triggered when staff move into higher-risk roles?",why:"The guidance states the training commitment should be continual, and cover instances of employee movement.",action:"Add FTPF training as a mandatory onboarding module. Create a role-change trigger process to retrain employees moving into higher-risk functions."},
+    {q:"Are fraud prevention expectations communicated to third-party associated persons through contracts or supplier codes of conduct?",why:"The guidance recommends financial crime clauses in contracts or supplier codes as a way to evidence communication to third parties.",action:"Add FTPF compliance clauses to standard supplier and contractor agreements. Update your supplier code of conduct to reference fraud prevention requirements."},
+  ],
+  [
+    {q:"Is there a formal process for monitoring fraud prevention effectiveness, with results reported to the board or audit committee?",why:"Monitoring without board reporting is insufficient. Senior management oversight of results demonstrates genuine ongoing commitment.",sfoRisk:true,action:"Establish KPIs for your fraud prevention programme. Report training completion rates, incident reports, and third-party assessment outcomes to the board or audit committee at least annually."},
+    {q:"When fraud incidents or near-misses occur, is there a formal lessons-learned process that updates prevention procedures?",why:"Failing to update procedures after an incident may directly undermine the reasonable procedures defence.",action:"Implement a formal incident review process. Every fraud incident or near-miss must trigger a documented review: what failed, why it failed, and what procedure changes will be made.",prosecuteRisk:"The SFO is likely to scrutinise whether incidents led to procedure updates. Failure to update after known incidents may significantly undermine the reasonable procedures defence."},
+    {q:"Is there a clear documented process for deciding whether to self-report fraud to the SFO, FCA, or other regulators?",why:"The SFO and CPS have explicitly encouraged self-reporting. Early self-reporting demonstrates commitment to responsible governance.",action:"Document a self-reporting decision framework: who decides, to which authority, and within what timeframe. Legal counsel should be involved in designing this process."},
+  ],
+];
+
+var currentStep=0, sector="financial", orgName="", assessorName="";
+var eligSet=new Set();
+var answers=[{},{},{},{},{},{}];
+
+function toggleE(id){
+  var el=document.getElementById(id);
+  if(eligSet.has(id)){eligSet.delete(id);el.classList.remove("on");}
+  else{eligSet.add(id);el.classList.add("on");}
+  var r=document.getElementById("elig-res");
+  r.className="elig-result";
+  if(!eligSet.size)return;
+  if(eligSet.size>=2){r.className="elig-result inscope";r.innerHTML="<strong>In scope.</strong> You meet 2 or more criteria and are subject to the FTPF offence. Complete the assessment below to analyse your defence readiness.";}
+  else{r.className="elig-result partial";r.innerHTML="<strong>1 criterion met.</strong> You may still be caught as an associated person of a large organisation. Review your third-party contractual obligations.";}
+}
+
+function setSector(btn){
+  document.querySelectorAll(".sec-btn").forEach(function(b){b.classList.remove("active");});
+  btn.classList.add("active");
+  sector=btn.dataset.sector;
+}
+
+function buildSteps(){
+  var html="";
+  for(var pi=0;pi<PRINCIPLES.length;pi++){
+    var p=PRINCIPLES[pi];
+    var qs="";
+    for(var qi=0;qi<QUESTIONS[pi].length;qi++){
+      var q=QUESTIONS[pi][qi];
+      var naBtn=q.na ? '<div class="opt" data-val="na" onclick="optClick(this)">N/A</div>' : "";
+      var sfoB=q.sfoRisk ? '<span class="q-sfo-badge">HIGH SFO SCRUTINY</span>' : "";
+      var sfoAlert=p.sfoFlag ? '<div class="sfo-alert">&#9888; '+p.sfoFlag+'</div>' : "";
+      var prRisk=q.prosecuteRisk ? '<div class="q-prose-risk" id="qp-'+pi+'-'+qi+'">&#9888; '+q.prosecuteRisk+'</div>' : "";
+      qs+='<div class="question">'
+        +'<div class="q-meta"><span class="q-meta-num">P'+(pi+1)+' · Q'+(qi+1)+'</span>'+sfoB+'</div>'
+        +'<div class="q-text">'+q.q+'</div>'
+        +'<div class="q-context">'+q.why+'</div>'
+        +'<div class="opts" data-p="'+pi+'" data-q="'+qi+'">'
+        +'<div class="opt" data-val="yes" onclick="optClick(this)">&#10003; Yes &#8212; in place</div>'
+        +'<div class="opt" data-val="partial" onclick="optClick(this)">&#9680; Partial</div>'
+        +'<div class="opt" data-val="no" onclick="optClick(this)">&#10007; No</div>'
+        +naBtn
+        +'</div>'
+        +'<div class="q-action" id="qa-'+pi+'-'+qi+'"><strong>ACTION REQUIRED</strong>'+q.action+'</div>'
+        +prRisk
+        +'</div>';
+    }
+    var prevLabel=pi===0?"&#8592; Scope":"&#8592; Principle "+pi;
+    var nextLabel=pi===5?"View Results &#8594;":"Next: "+PRINCIPLES[pi+1].title+" &#8594;";
+    html+='<div class="step-panel" id="step-'+(pi+1)+'">'
+      +'<span class="section-eyebrow">PRINCIPLE '+(pi+1)+' OF 6</span>'
+      +'<div class="section-title">'+p.title+'</div>'
+      +'<div class="section-sub">'+p.subtitle+'</div>'
+      +'<div class="pcard">'
+      +'<div class="pcard-head" onclick="togglePC('+pi+')">'
+      +'<div class="pcard-left">'
+      +'<div class="pcard-num" id="pcnum-'+pi+'">'+(pi+1)+'</div>'
+      +'<div><div class="pcard-title">'+p.title+'</div><div class="pcard-sub">'+p.subtitle+'</div></div>'
+      +'</div>'
+      +'<div id="pcbadge-'+pi+'" class="pcard-badge pb-none">Not started</div>'
+      +'</div>'
+      +'<div class="pcard-body open" id="pcbody-'+pi+'">'
+      +'<div class="pcard-intro"><div class="pcard-intro-text">'+p.intro+'</div>'+sfoAlert+'</div>'
+      +qs
+      +'</div>'
+      +'</div>'
+      +'<div class="step-foot">'
+      +'<button class="btn-back" onclick="goStep('+pi+')">'+prevLabel+'</button>'
+      +'<span class="step-counter">Principle '+(pi+1)+' of 6</span>'
+      +'<button class="btn-next" onclick="goStep('+(pi+2)+')">'+nextLabel+'</button>'
+      +'</div>'
+      +'</div>';
+  }
+  document.getElementById("principle-steps").innerHTML=html;
+}
+
+function togglePC(i){document.getElementById("pcbody-"+i).classList.toggle("open");}
+
+function optClick(btn){
+  var val=btn.dataset.val;
+  var opts=btn.parentElement;
+  var pi=parseInt(opts.dataset.p), qi=parseInt(opts.dataset.q);
+  opts.querySelectorAll(".opt").forEach(function(o){o.className="opt";});
+  btn.classList.add(val);
+  answers[pi][qi]=val;
+  var act=document.getElementById("qa-"+pi+"-"+qi);
+  if(act)act.classList.toggle("show",val==="no"||val==="partial");
+  var pr=document.getElementById("qp-"+pi+"-"+qi);
+  if(pr)pr.classList.toggle("show",val==="no");
+  updateSidebar();updatePCard(pi);saveProgress();
+}
+
+function goStep(n){
+  if(n>7)return;
+  document.querySelectorAll(".step-panel").forEach(function(p){p.classList.remove("active");});
+  document.getElementById("results-panel").classList.remove("show");
+  document.querySelectorAll(".rail-step").forEach(function(s,i){
+    s.classList.remove("active","done");
+    if(i<n)s.classList.add("done");
+  });
+  currentStep=n;
+  var total=18, done=0;
+  answers.forEach(function(sec){done+=Object.keys(sec).length;});
+  var railFill=document.getElementById("rail-fill"); if(railFill)railFill.style.width=(done/total*100)+"%";
+  if(n===7){
+    showResults();
+    document.getElementById("results-panel").classList.add("show");
+    document.getElementById("pnav-7").classList.add("active");
+  } else {
+    var panel=document.getElementById("step-"+n);
+    if(panel)panel.classList.add("active");
+    var pnav=document.getElementById("pnav-"+n);
+    if(pnav)pnav.classList.add("active");
+    window.scrollTo({top:0,behavior:"smooth"});
+  }
+}
+
+function pScore(pi){
+  var vals=Object.values(answers[pi]);
+  if(!vals.length)return null;
+  var s=0;
+  vals.forEach(function(v){if(v==="yes"||v==="na")s+=2;else if(v==="partial")s+=1;});
+  return s/(vals.length*2);
+}
+
+function overallScore(){
+  var t=0,m=0;
+  answers.forEach(function(sec){Object.values(sec).forEach(function(v){m+=2;if(v==="yes"||v==="na")t+=2;else if(v==="partial")t+=1;});});
+  return m?t/m:null;
+}
+
+function exposure(){
+  var sc=overallScore();if(sc===null)return null;
+  return Math.min(98,Math.round((1-sc)*100*(SECTORS[sector]?SECTORS[sector].multiplier:1)));
+}
+
+function updateSidebar(){
+  var exp=exposure();
+  if(exp!==null){
+    var col=exp>=60?"var(--danger)":exp>=35?"var(--warn)":"var(--safe)";
+    document.getElementById("meter-val").textContent=exp+"%";
+    document.getElementById("meter-val").style.color=col;
+    document.getElementById("meter-desc").textContent=exp>=60?"High exposure — immediate action recommended":exp>=35?"Moderate exposure — gaps require attention":"Lower exposure — maintain and document";
+    var arc=document.getElementById("gauge-arc");
+    arc.style.stroke=col;arc.style.strokeDashoffset=175-(exp/100*175);
+  }
+  for(var i=0;i<6;i++){
+    var sc=pScore(i), cell=document.getElementById("hm-"+i), count=Object.keys(answers[i]).length;
+    cell.className="hmap-cell";
+    if(!count){cell.querySelector(".hc-status").textContent="—";continue;}
+    if(sc>=0.75){cell.classList.add("safe");cell.querySelector(".hc-status").textContent="STRONG";}
+    else if(sc>=0.45){cell.classList.add("warn");cell.querySelector(".hc-status").textContent="PARTIAL";}
+    else{cell.classList.add("danger");cell.querySelector(".hc-status").textContent="WEAK";}
+  }
+  var any=answers.some(function(s){return Object.keys(s).length>0;});
+  if(!any)return;
+  var barsHtml="";
+  PRINCIPLES.forEach(function(p,i){
+    var sc=pScore(i);
+    if(sc===null){barsHtml+='<div class="sbar"><div class="sbar-top"><span style="font-size:.65rem">'+p.title+'</span><span style="color:var(--ink4)">—</span></div><div class="sbar-track"></div></div>';return;}
+    var pct=Math.round(sc*100), col=sc>=0.75?"var(--safe)":sc>=0.45?"#d97706":"var(--danger)";
+    barsHtml+='<div class="sbar"><div class="sbar-top"><span style="font-size:.65rem">'+p.title+'</span><span style="color:'+col+'">'+pct+'%</span></div><div class="sbar-track"><div class="sbar-fill" style="width:'+pct+'%;background:'+col+'"></div></div></div>';
+  });
+  document.getElementById("score-bars").innerHTML=barsHtml;
+}
+
+function updatePCard(pi){
+  var sc=pScore(pi), count=Object.keys(answers[pi]).length;
+  var n=document.getElementById("pcnum-"+pi), b=document.getElementById("pcbadge-"+pi);
+  if(!count){n.className="pcard-num";b.className="pcard-badge pb-none";b.textContent="Not started";return;}
+  if(count<3){b.textContent="In progress";return;}
+  if(sc>=0.75){n.className="pcard-num done";b.className="pcard-badge pb-done";b.textContent="Strong";}
+  else if(sc>=0.45){n.className="pcard-num partial";b.className="pcard-badge pb-partial";b.textContent="Needs work";}
+  else{n.className="pcard-num weak";b.className="pcard-badge pb-weak";b.textContent="Significant gap";}
+}
+
+function saveProgress(){
+  try{sessionStorage.setItem("ftpf_v2",JSON.stringify({answers:answers,sector:sector,orgName:orgName,assessorName:assessorName}));}catch(e){}
+}
+
+function updateMeta(key,value){
+  if(key==="orgName")orgName=value;
+  if(key==="assessorName")assessorName=value;
+  saveProgress();
+}
+
+function esc(s){
+  return String(s||"").replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];});
+}
+
+function loadProgress(){
+  try{
+    var saved=JSON.parse(sessionStorage.getItem("ftpf_v2")||"null");
+    if(!saved)return;
+    orgName=saved.orgName||"";
+    assessorName=saved.assessorName||"";
+    var orgEl=document.getElementById("org-name"), assessorEl=document.getElementById("assessor-name");
+    if(orgEl)orgEl.value=orgName;
+    if(assessorEl)assessorEl.value=assessorName;
+    if(saved.sector&&SECTORS[saved.sector]){
+      sector=saved.sector;
+      document.querySelectorAll(".sec-btn").forEach(function(b){b.classList.toggle("active",b.dataset.sector===sector);});
+    }
+    if(Array.isArray(saved.answers)&&saved.answers.length===answers.length){
+      answers=saved.answers.map(function(sec){return sec&&typeof sec==="object"?sec:{};});
+      answers.forEach(function(sec,pi){
+        Object.keys(sec).forEach(function(qi){
+          var opts=document.querySelector(".opts[data-p=\""+pi+"\"][data-q=\""+qi+"\"]");
+          if(!opts)return;
+          var btn=opts.querySelector(".opt[data-val=\""+sec[qi]+"\"]");
+          if(!btn)return;
+          opts.querySelectorAll(".opt").forEach(function(o){o.className="opt";});
+          btn.classList.add(sec[qi]);
+          var act=document.getElementById("qa-"+pi+"-"+qi);
+          if(act)act.classList.toggle("show",sec[qi]==="no"||sec[qi]==="partial");
+          var pr=document.getElementById("qp-"+pi+"-"+qi);
+          if(pr)pr.classList.toggle("show",sec[qi]==="no");
+        });
+        updatePCard(pi);
+      });
+      updateSidebar();
+    }
+  }catch(e){}
+}
+
+function restartAssessment(){
+  try{sessionStorage.removeItem("ftpf_v2");}catch(e){}
+  location.reload();
+}
+
+function showResults(){
+  var sc=overallScore()||0, exp=exposure()||0, pct=Math.round(sc*100);
+  var sn=SECTORS[sector]?SECTORS[sector].name:"General";
+  var d=new Date().toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"});
+  var orgLabel=orgName?esc(orgName):"Not specified";
+  var assessorLabel=assessorName?esc(assessorName):"Not specified";
+  var gaps=[];
+  answers.forEach(function(sec,pi){
+    Object.entries(sec).forEach(function(entry){
+      var qi=parseInt(entry[0]),val=entry[1];
+      if(val==="no"||val==="partial"){var q=QUESTIONS[pi][qi];gaps.push({pi:pi,qi:qi,val:val,q:q,sfoRisk:q.sfoRisk||false});}
+    });
+  });
+  gaps.sort(function(a,b){
+    var valDiff=(a.val==="no"?0:1)-(b.val==="no"?0:1);
+    if(valDiff)return valDiff;
+    return (b.sfoRisk?1:0)-(a.sfoRisk?1:0);
+  });
+
+  var evPack=[
+    {label:"Board-approved fraud policy",key:"0-0"},{label:"Named fraud prevention lead",key:"0-1"},
+    {label:"Documented risk assessment",key:"1-0"},{label:"Third-party coverage",key:"1-1"},
+    {label:"Dynamic review process",key:"1-2"},{label:"Risk-mapped procedures",key:"2-0"},
+    {label:"Whistleblowing framework",key:"2-1"},{label:"Staff training records",key:"4-0"},
+    {label:"Third-party contracts updated",key:"4-2"},{label:"Board monitoring reports",key:"5-0"},
+    {label:"Incident review process",key:"5-1"},{label:"Self-reporting framework",key:"5-2"},
+  ];
+  function epSt(key){var parts=key.split("-"),pi=parseInt(parts[0]),qi=parseInt(parts[1]),v=answers[pi]?answers[pi][qi]:null;if(!v)return"missing";if(v==="yes"||v==="na")return"complete";return"partial";}
+
+  var cls=pct>=70?"strong":pct>=45?"moderate":"weak";
+  var hl=pct>=70?"Reasonable procedures: On track":pct>=45?"Partial compliance: Action required":"Significant gaps: Urgent action needed";
+  var desc=pct>=70?"Your organisation has strong foundations for the reasonable procedures defence. Address the specific gaps below and maintain ongoing documentation. As a "+sn+" organisation, continued vigilance remains essential.":pct>=45?"Your organisation has some procedures in place but significant gaps remain. Without addressing these, you may struggle to rely on the reasonable procedures defence if fraud occurs.":"Your organisation has material gaps that may significantly weaken the reasonable procedures defence. Seeking independent legal advice is recommended alongside the actions below.";
+
+  var expCol=exp>=60?"var(--danger)":exp>=35?"var(--warn)":"var(--safe)";
+
+  var breakdownHtml="";
+  PRINCIPLES.forEach(function(p,i){
+    var s=pScore(i), pp=s!==null?Math.round(s*100):0;
+    var col=s===null?"var(--ink4)":s>=0.75?"var(--safe)":s>=0.45?"#d97706":"var(--danger)";
+    var vd=s===null?"Not assessed":s>=0.75?"Strong — maintain and document":s>=0.45?"Needs improvement":"Significant gap — action required";
+    breakdownHtml+='<div class="rb-card"><div class="rb-name">PRINCIPLE '+(i+1)+'</div><div class="rb-score" style="color:'+col+'">'+pp+'% · '+p.title+'</div><div class="rb-track"><div class="rb-fill" style="width:'+pp+'%;background:'+col+'"></div></div><div class="rb-verdict">'+vd+'</div></div>';
+  });
+
+  var actionsHtml="";
+  if(gaps.length===0){
+    actionsHtml='<div style="padding:16px;background:var(--safe-bg);border:1px solid var(--safe-border);border-radius:5px;font-size:.8rem;color:var(--safe)">&#10003; No critical gaps identified. Focus on maintaining documentation and scheduling regular reviews.</div>';
+  } else {
+    gaps.slice(0,10).forEach(function(g,i){
+      var pri=g.val==="no"&&g.sfoRisk?"ai-p1":g.val==="no"?"ai-p1":"ai-p2";
+      var tl=g.val==="no"&&g.sfoRisk?'<span class="ai-timeline t-urgent">URGENT — within 30 days</span>':g.val==="no"?'<span class="ai-timeline t-soon">Within 60 days</span>':'<span class="ai-timeline t-plan">Within 90 days</span>';
+      actionsHtml+='<div class="action-item"><div class="ai-num '+pri+'">'+(i+1)+'</div><div class="ai-body"><div class="ai-title">Principle '+(g.pi+1)+': '+PRINCIPLES[g.pi].title+'</div><div class="ai-desc">'+g.q.action+'</div>'+tl+'</div></div>';
+    });
+  }
+
+  var epHtml="";
+  evPack.forEach(function(item){var st=epSt(item.key),ic=st==="complete"?"&#10003;":st==="partial"?"&#9680;":"&#10007;";epHtml+='<div class="ep-item '+st+'">'+ic+' '+item.label+'</div>';});
+
+  document.getElementById("results-panel").innerHTML=
+    '<div class="r-hero">'
+    +'<div class="r-hero-inner">'
+    +'<div class="r-dial '+cls+'"><div class="rd-num">'+pct+'%</div><div class="rd-lbl">DEFENCE SCORE</div></div>'
+    +'<div class="r-verdict"><h2>'+hl+'</h2><p>'+desc+'</p>'
+    +'<div class="r-quote">"I want to be the first to prosecute someone under the new provisions of ECCTA." — Former SFO Director Nick Ephgrave (2025)</div>'
+    +'</div></div>'
+    +'<div class="r-meta">FTPF READINESS ASSESSMENT · Completed: '+d+' · Sector: '+sn+' · Source: ECCTA 2023 S.199 · Home Office Guidance</div>'
+    +'</div>'
+    +'<div class="r-client-meta"><div class="rcm-item"><div class="rcm-label">Organisation</div><div class="rcm-value">'+orgLabel+'</div></div><div class="rcm-item"><div class="rcm-label">Assessor</div><div class="rcm-value">'+assessorLabel+'</div></div><div class="rcm-item"><div class="rcm-label">Assessment date</div><div class="rcm-value">'+d+'</div></div></div>'
+    +'<div class="r-stats">'
+    +'<div class="r-stat"><div class="rs-label">PROSECUTION EXPOSURE</div><div class="rs-val" style="color:'+expCol+'">'+exp+'%</div><div class="rs-sub">'+sn+' sector weighting applied</div></div>'
+    +'<div class="r-stat"><div class="rs-label">CRITICAL GAPS</div><div class="rs-val" style="color:var(--danger)">'+gaps.filter(function(g){return g.val==="no";}).length+'</div><div class="rs-sub">Require immediate attention</div></div>'
+    +'<div class="r-stat"><div class="rs-label">PARTIAL PROCEDURES</div><div class="rs-val" style="color:var(--warn)">'+gaps.filter(function(g){return g.val==="partial";}).length+'</div><div class="rs-sub">Need completion and documentation</div></div>'
+    +'</div>'
+    +'<div class="r-breakdown">'+breakdownHtml+'</div>'
+    +'<div class="r-actions"><h3>Priority Actions <span>'+gaps.length+' gap'+(gaps.length!==1?"s":"")+" identified</span></h3>"+actionsHtml+'</div>'
+    +'<div class="evid-pack"><div class="ep-title">Evidence Pack Status</div>'
+    +'<div style="font-size:.74rem;color:var(--ink3);margin-bottom:12px">Documents your organisation should hold to evidence reasonable procedures to the SFO</div>'
+    +'<div class="ep-grid">'+epHtml+'</div></div>'
+    +'<div class="r-disclaimer"><strong>Legal disclaimer.</strong> This assessment provides general compliance guidance based on publicly available statutory guidance (ECCTA 2023, S.199; Home Office Guidance; UK Finance sector guidance) and should not be relied upon as legal advice. Results are indicative only and may not reflect all relevant legal or regulatory considerations specific to your organisation. Independent legal counsel should be obtained before making compliance, reporting, or governance decisions. Scores and exposure indicators are based on a simplified model and do not constitute a legal opinion or assurance that a statutory defence would succeed.</div>'
+    +'<div class="r-cta"><div class="r-cta-body"><div class="r-cta-kicker">Recommended next step</div><div class="r-cta-title">Turn this assessment into an evidence-backed remediation plan.</div><div class="r-cta-copy">Use the priority actions and evidence pack above to brief legal, compliance, finance, procurement, HR, and senior management. For high or moderate exposure, consider commissioning an independent review of your reasonable procedures and board reporting pack.</div></div><div class="r-cta-actions"><button class="btn-cta" onclick="window.print()">Save board report</button><button class="btn-cta secondary" onclick="goStep(1)">Review answers</button></div></div>'
+    +'<div class="r-foot">'
+    +'<button class="btn-print" onclick="window.print()">Print / Save as PDF</button>'
+    +'<button class="btn-restart" onclick="restartAssessment()">&#8635; Start New Assessment</button>'
+    +'</div>';
+
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+buildSteps();
+loadProgress();
+</script>
+</body>
+</html>
