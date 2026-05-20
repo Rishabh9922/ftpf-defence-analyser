@@ -466,7 +466,7 @@ button,.sec-btn,.elig-card,.rail-step,.opt,.pcard-head{touch-action:manipulation
 <div id="masthead">
   <div id="mast-inner">
     <div id="mast-top">
-      <div class="brand-row">
+      <div class="brand-row" onclick="goStep(0)" style="cursor:pointer">
         <div class="brand-seal">⚖</div>
         <div class="brand-text">
           <strong>FTPF DEFENCE ANALYSER</strong>
@@ -763,7 +763,7 @@ button,.sec-btn,.elig-card,.rail-step,.opt,.pcard-head{touch-action:manipulation
 
 <footer id="site-footer">
   <div class="footer-inner">
-    <div class="footer-credit">Built by Rishabh Singh · © 2026</div>
+    <div class="footer-credit">Built by <a href="https://www.linkedin.com/in/rishabhs11" target="_blank" style="color:inherit;text-decoration:underline;text-underline-offset:2px">Rishabh Singh</a> · © 2026</div>
     <div>
       <div class="footer-source">Based on: ECCTA 2023 S.199 · <a href="https://www.gov.uk/government/publications/offence-of-failure-to-prevent-fraud-introduced-by-eccta/economic-crime-and-corporate-transparency-act-2023-guidance-to-organisations-on-the-offence-of-failure-to-prevent-fraud-accessible-version" target="_blank" style="color:inherit;text-decoration:underline;text-underline-offset:2px">Home Office Guidance (6 Nov 2024)</a></div>
       <div class="footer-rights">This tool is original work. Legal source material is Crown Copyright.</div>
@@ -826,6 +826,8 @@ function toggleE(id){
   if(!eligSet.size)return;
   if(eligSet.size>=2){r.className="elig-result inscope";r.innerHTML="<strong>In scope.</strong> You meet 2 or more criteria and are subject to the FTPF offence. Complete the assessment below to analyse your defence readiness.";}
   else{r.className="elig-result partial";r.innerHTML="<strong>1 criterion met.</strong> You may still be caught as an associated person of a large organisation. Review your third-party contractual obligations.";}
+var err = document.getElementById("elig-error");
+  if(err) err.remove();
 }
 
 function setSector(btn){
@@ -833,6 +835,8 @@ function setSector(btn){
   btn.classList.add("active");
   sector=btn.dataset.sector;
   updateSidebar();
+var err = document.getElementById("sector-error");
+  if(err) err.remove();
 }
 
 function buildSteps(){
@@ -906,6 +910,86 @@ function optClick(btn){
 }
 
 function goStep(n){
+if(n > currentStep){
+
+    if(currentStep === 0){
+      var hasError = false;
+      var ex1 = document.getElementById("sector-error");
+      var ex2 = document.getElementById("elig-error");
+      if(ex1) ex1.remove();
+      if(ex2) ex2.remove();
+      // Check sector is selected
+      var activeSector = document.querySelector(".sec-btn.active");
+      if(!activeSector){
+        var stepFoot = document.querySelector("#step-0 .step-foot");
+        var ex3 = document.getElementById("sector-error");
+        if(ex3) ex3.remove();
+        if(stepFoot){
+          var err2 = document.createElement("div");
+          err2.id = "sector-error";
+          err2.style.cssText = "background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:10px 16px;font-size:.78rem;color:#991b1b;margin-bottom:12px;display:flex;align-items:center;gap:8px";
+          err2.innerHTML = "<span style='font-size:1rem'>⚠</span> Please select your sector before continuing.";
+          stepFoot.parentNode.insertBefore(err2, stepFoot);
+          err2.scrollIntoView({behavior:"smooth", block:"nearest"});
+        }
+        hasError = true;
+      }
+if(eligSet.size === 0){
+        var eligCard = document.getElementById("elig-res");
+        if(eligCard){
+          var err1 = document.createElement("div");
+          err1.id = "elig-error";
+          err1.style.cssText = "background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:10px 16px;font-size:.78rem;color:#991b1b;margin-top:10px;display:flex;align-items:center;gap:8px";
+          err1.innerHTML = "<span style='font-size:1rem'>⚠</span> Please complete the eligibility check before continuing.";
+          eligCard.parentNode.insertBefore(err1, eligCard.nextSibling);
+          err1.scrollIntoView({behavior:"smooth", block:"nearest"});
+        }
+        hasError = true;
+      }
+      if(hasError) return;
+    }
+
+    var unanswered = [];
+    if(currentStep > 0){
+      var pi = currentStep - 1;
+      var totalQ = QUESTIONS[pi].length;
+      for(var i=0;i<totalQ;i++){
+        if(answers[pi][i]===undefined){
+          unanswered.push(i+1);
+        }
+      }
+      if(unanswered.length > 0){
+  // Remove any existing error message
+  var existing = document.getElementById("step-error-"+currentStep);
+  if(existing) existing.remove();
+
+  // Highlight unanswered questions in red
+  for(var j=0;j<QUESTIONS[pi].length;j++){
+    if(answers[pi][j]===undefined){
+      var optsEl = document.querySelector('.opts[data-p="'+pi+'"][data-q="'+j+'"]');
+      if(optsEl){
+        optsEl.style.outline = "2px solid #991b1b";
+        optsEl.style.borderRadius = "6px";
+        optsEl.style.outlineOffset = "4px";
+      }
+    }
+  }
+
+  // Show inline error message
+  var stepEl = document.getElementById("step-"+currentStep);
+  var foot = stepEl ? stepEl.querySelector(".step-foot") : null;
+  if(foot){
+    var err = document.createElement("div");
+    err.id = "step-error-"+currentStep;
+    err.style.cssText = "background:#fef2f2;border:1px solid #fecaca;border-radius:6px;padding:10px 16px;font-size:.78rem;color:#991b1b;margin-bottom:12px;display:flex;align-items:center;gap:8px";
+    err.innerHTML = "<span style='font-size:1rem'>⚠</span> Please answer all highlighted questions before continuing.";
+    foot.parentNode.insertBefore(err, foot);
+    err.scrollIntoView({behavior:"smooth", block:"nearest"});
+  }
+  return;
+}
+    }
+  }
   if(n>7)return;
   document.querySelectorAll(".step-panel").forEach(function(p){p.classList.remove("active");});
   document.getElementById("results-panel").classList.remove("show");
@@ -1120,7 +1204,7 @@ function showResults(){
     +'<div class="evid-pack"><div class="ep-title">Evidence Pack Status</div>'
     +'<div style="font-size:.74rem;color:var(--ink3);margin-bottom:12px">Documents your organisation should hold to evidence reasonable procedures to the SFO</div>'
     +'<div class="ep-grid">'+epHtml+'</div></div>'
-    +'<div class="r-disclaimer"><strong>Legal disclaimer.</strong> This assessment provides general compliance guidance based on publicly available statutory guidance (ECCTA 2023, S.199; Home Office Guidance; UK Finance sector guidance) and should not be relied upon as legal advice. Results are indicative only and may not reflect all relevant legal or regulatory considerations specific to your organisation. Independent legal counsel should be obtained before making compliance, reporting, or governance decisions. Scores and exposure indicators are based on a simplified model and do not constitute a legal opinion or assurance that a statutory defence would succeed.</div>'
+    +'<div class="r-disclaimer"><strong>Legal disclaimer.</strong> This assessment provides general compliance guidance based on publicly available statutory guidance (ECCTA 2023, S.199; <a href="https://www.gov.uk/government/publications/offence-of-failure-to-prevent-fraud-introduced-by-eccta/economic-crime-and-corporate-transparency-act-2023-guidance-to-organisations-on-the-offence-of-failure-to-prevent-fraud-accessible-version" target="_blank" style="color:inherit;text-decoration:underline;text-underline-offset:2px">Home Office Guidance</a>; UK Finance sector guidance) and should not be relied upon as legal advice. Results are indicative only and may not reflect all relevant legal or regulatory considerations specific to your organisation. Independent legal counsel should be obtained before making compliance, reporting, or governance decisions. Scores and exposure indicators are based on a simplified model and do not constitute a legal opinion or assurance that a statutory defence would succeed.</div>'
     +'<div class="r-cta"><div class="r-cta-body"><div class="r-cta-kicker">Recommended next step</div><div class="r-cta-title">Turn this assessment into an evidence-backed remediation plan.</div><div class="r-cta-copy">Use the priority actions and evidence pack above to brief legal, compliance, finance, procurement, HR, and senior management. For high or moderate exposure, consider commissioning an independent review of your reasonable procedures and board reporting pack.</div></div><div class="r-cta-actions"><button class="btn-cta" onclick="window.print()">Save board report</button><button class="btn-cta secondary" onclick="goStep(1)">Review answers</button></div></div>'
     +'<div class="r-foot">'
     +'<button class="btn-print" onclick="window.print()">Print / Save as PDF</button>'
