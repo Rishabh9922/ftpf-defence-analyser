@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -11,7 +11,7 @@
   --cream:#f5f0e8;
   --paper:#faf7f2;
   --white:#ffffff;
-  --ink:#1c1a16;
+  --ink:#1c1a16;f
   --ink2:#4a4640;
   --ink3:#8c8680;
   --ink4:#bbb5ae;
@@ -483,7 +483,7 @@ button,.sec-btn,.elig-card,.rail-step,.opt,.pcard-head{touch-action:manipulation
       <div id="mast-headline">
         <span class="overline">CORPORATE CRIMINAL LIABILITY ASSESSMENT</span>
         <h1>How strong is your<br><em>fraud prevention</em> defence?</h1>
-        <p>A free interactive assessment tool analysing your organisation's readiness under the UK's Failure to Prevent Fraud offence, with sector-weighted risk scoring, principle-by-principle analysis, and a personalised evidence pack.</p>
+        <p>An interactive assessment tool analysing your organisation's readiness under the UK's Failure to Prevent Fraud offence, with sector-weighted risk scoring, principle-by-principle analysis, and a personalised evidence pack.</p>
       </div>
       <div class="mast-stat-grid">
         <div class="mast-stat">
@@ -576,13 +576,13 @@ button,.sec-btn,.elig-card,.rail-step,.opt,.pcard-head{touch-action:manipulation
           </div>
           <div class="sec-btn" data-sector="construction" onclick="setSector(this)">
             <span class="sb-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M6 20V8h12v12"/><path d="M9 20v-5h6v5"/><path d="M8 11h2"/><path d="M14 11h2"/><path d="M8 4h8"/><path d="M12 4v4"/></svg></span>
-            <span class="sb-name">Construction</span>
+            <span class="sb-name">Construction &amp; Infrastructure</span>
             <span class="sb-risk h">↑ HIGH RISK</span>
           </div>
-          <div class="sec-btn" data-sector="retail" onclick="setSector(this)">
-            <span class="sb-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 8h12l-1 12H7L6 8Z"/><path d="M9 8a3 3 0 0 1 6 0"/><path d="M9 13h6"/></svg></span>
-            <span class="sb-name">Retail &amp; Consumer</span>
-            <span class="sb-risk m">→ MEDIUM RISK</span>
+          <div class="sec-btn" data-sector="energy" onclick="setSector(this)">
+           <span class="sb-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/></svg></span>
+           <span class="sb-name">Energy &amp; Commodities</span>
+           <span class="sb-risk h">↑ HIGH RISK</span>
           </div>
           <div class="sec-btn" data-sector="technology" onclick="setSector(this)">
             <span class="sb-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="11" rx="1.5"/><path d="M8 20h8"/><path d="M12 16v4"/></svg></span>
@@ -598,6 +598,78 @@ button,.sec-btn,.elig-card,.rail-step,.opt,.pcard-head{touch-action:manipulation
       </div>
 
       <div class="card" style="padding:22px">
+	<div class="card" style="padding:22px;margin-top:14px">
+  <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="var p=this.nextElementSibling;p.style.display=p.style.display==='none'?'block':'none';this.querySelector('.toggle-lbl').textContent=p.style.display==='none'?'VIEW ↓':'HIDE ↑'">
+    <div>
+      <div style="font-size:.82rem;font-weight:600;color:var(--ink)">Sector Enforcement Risk - Evidence & Methodology</div>
+      <div style="font-size:.73rem;color:var(--ink3);margin-top:2px">Click to view evidence sources</div>
+    </div>
+    <div class="toggle-lbl" style="font-size:.72rem;color:var(--blue);font-family:var(--mono);font-weight:700;flex-shrink:0">VIEW ↓</div>
+  </div>
+
+  <div style="display:none;margin-top:16px">
+
+   <div style="font-size:.76rem;color:var(--ink2);line-height:1.7;margin-bottom:14px">
+  Sector risk rankings are based on DLA Piper's analysis of the SFO Business Plan 2025/26, which specifically identifies high-risk sectors for FTPF enforcement. The numerical multipliers applied to each sector are indicative weightings reflecting relative enforcement priority, they are not published by any official body and do not constitute legal advice.
+</div>
+
+    <table style="width:100%;border-collapse:collapse;font-size:.75rem">
+      <thead>
+        <tr style="border-bottom:2px solid var(--rule)">
+          <th style="text-align:left;padding:8px 10px;font-family:var(--mono);font-size:.58rem;letter-spacing:.1em;color:var(--ink4);font-weight:700">SECTOR</th>
+          <th style="text-align:center;padding:8px 10px;font-family:var(--mono);font-size:.58rem;letter-spacing:.1em;color:var(--ink4);font-weight:700">MULT.</th>
+          <th style="text-align:left;padding:8px 10px;font-family:var(--mono);font-size:.58rem;letter-spacing:.1em;color:var(--ink4);font-weight:700">EVIDENCE BASIS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid var(--rule2)">
+          <td style="padding:9px 10px;font-weight:600;color:var(--ink)">Financial Services</td>
+          <td style="padding:9px 10px;text-align:center;font-family:var(--mono);font-weight:700;color:var(--red)">× 1.5</td>
+          <td style="padding:9px 10px;color:var(--ink2)">FCA + SFO dual oversight. Highest enforcement history across all published sources.<br><span style="color:var(--ink4);font-size:.68rem">— DLA Piper FTPF Guidance 2025</span></td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--rule2)">
+          <td style="padding:9px 10px;font-weight:600;color:var(--ink)">Professional Services</td>
+          <td style="padding:9px 10px;text-align:center;font-family:var(--mono);font-weight:700;color:var(--red)">× 1.3</td>
+          <td style="padding:9px 10px;color:var(--ink2)">SFO actively investigating legal services and accountancy firms.<br><span style="color:var(--ink4);font-size:.68rem">— DLA Piper; SFO Annual Business Plan 2025/26</span></td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--rule2)">
+          <td style="padding:9px 10px;font-weight:600;color:var(--ink)">Construction &amp; Infrastructure</td>
+          <td style="padding:9px 10px;text-align:center;font-family:var(--mono);font-weight:700;color:var(--red)">× 1.3</td>
+          <td style="padding:9px 10px;color:var(--ink2)">Active SFO investigation — Blu-3 Ltd (April 2025). Named high-risk by DLA Piper.<br><span style="color:var(--ink4);font-size:.68rem">— DLA Piper FTPF Sector Guidance 2025; SFO Business Plan 2025/26</span></td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--rule2)">
+          <td style="padding:9px 10px;font-weight:600;color:var(--ink)">Energy &amp; Commodities</td>
+          <td style="padding:9px 10px;text-align:center;font-family:var(--mono);font-weight:700;color:var(--red)">× 1.3</td>
+          <td style="padding:9px 10px;color:var(--ink2)">Active SFO investigation into £44m energy fraud (2026). Glencore precedent.<br><span style="color:var(--ink4);font-size:.68rem">— DLA Piper FTPF Sector Guidance 2025; SFO Business Plan 2025/26</span></td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--rule2)">
+          <td style="padding:9px 10px;font-weight:600;color:var(--ink)">Technology</td>
+          <td style="padding:9px 10px;text-align:center;font-family:var(--mono);font-weight:700;color:#d97706">× 1.2</td>
+          <td style="padding:9px 10px;color:var(--ink2)">Named as high-risk FTPF sector. Rising fraud exposure in tech supply chains.<br><span style="color:var(--ink4);font-size:.68rem">— DLA Piper FTPF Sector Guidance 2025</span></td>
+        </tr>
+        <tr>
+          <td style="padding:9px 10px;font-weight:600;color:var(--ink)">General / Other</td>
+          <td style="padding:9px 10px;text-align:center;font-family:var(--mono);font-weight:700;color:var(--ink4)">× 0.9</td>
+          <td style="padding:9px 10px;color:var(--ink2)">Baseline. No specific SFO FTPF enforcement signals identified in this sector.<br><span style="color:var(--ink4);font-size:.68rem">— Indicative baseline only</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top:14px;padding:10px 14px;background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:4px;font-size:.72rem;color:var(--blue);line-height:1.7">
+      <strong style="font-family:var(--mono);font-size:.6rem;letter-spacing:.08em;display:block;margin-bottom:4px">SOURCES - BASIS FOR SECTOR RISK RANKINGS</strong>
+      <a href="https://www.dlapiper.com/en/insights/publications/2025/05/sfo-unveils-2025-26-plan-to-combat-financial-crime" target="_blank" style="color:var(--blue);display:block;margin-bottom:8px;text-decoration:underline">DLA Piper — FTPF Sector Risk Guidance (2025)</a>
+<a href="https://www.gov.uk/government/news/serious-fraud-office-sets-out-next-steps-in-ambitious-plan" target="_blank" style="color:var(--blue);display:block;margin-bottom:8px;text-decoration:underline">SFO Annual Business Plan 2025/26</a>
+<a href="https://assets.publishing.service.gov.uk/media/67ee4e86199d1cd55b48c6e8/SFO_2025-26__Business_Plan.pdf" target="_blank" style="color:var(--blue);display:block;margin-bottom:8px;text-decoration:underline">SFO Business Plan 2025/26 — Full PDF</a>
+<a href="https://www.gov.uk/government/publications/sfo-guidance-on-evaluating-a-corporate-compliance-programme" target="_blank" style="color:var(--blue);display:block;margin-bottom:8px;text-decoration:underline">SFO Guidance on Evaluating Corporate Compliance</a>
+<a href="https://www.gov.uk/government/news/refreshed-guidance-to-evaluate-corporate-compliance" target="_blank" style="color:var(--blue);display:block;margin-bottom:0;text-decoration:underline">SFO Refreshed Corporate Compliance Guidance (Nov 2025)</a>
+    </div>
+
+    <div style="margin-top:10px;font-size:.69rem;color:var(--ink4);font-style:italic;line-height:1.65">
+      All multipliers are indicative only. They do not constitute legal advice and should not be relied upon as a definitive assessment of prosecution risk. Independent legal counsel should be obtained for specific compliance decisions.
+    </div>
+
+  </div>
+</div>
         <div style="font-size:.78rem;font-weight:600;color:var(--ink);margin-bottom:4px">Eligibility check</div>
         <div style="font-size:.74rem;color:var(--ink3);margin-bottom:14px">Large organisations meeting 2 or more of the following criteria are in scope. Select all that apply, including subsidiaries.</div>
         <div class="elig-grid">
@@ -673,9 +745,9 @@ button,.sec-btn,.elig-card,.rail-step,.opt,.pcard-head{touch-action:manipulation
       <div class="method-row"><span>Partial</span><span>1 pt</span></div>
       <div class="method-row"><span>No</span><span>0 pts</span></div>
       <div style="margin-top:10px;font-family:var(--mono);font-size:.57rem;color:var(--ink4);letter-spacing:.08em;margin-bottom:6px">SECTOR MULTIPLIERS</div>
-      <div class="method-row"><span>Financial Services</span><span>×1.4</span></div>
-      <div class="method-row"><span>Professional / Construction</span><span>×1.2</span></div>
-      <div class="method-row"><span>Retail / Technology</span><span>×1.0</span></div>
+      <div class="method-row"><span>Financial Services</span><span>×1.5</span></div>
+      <div class="method-row"><span>Professional / Construction / Energy</span><span>×1.3</span></div>
+      <div class="method-row"><span>Technology</span><span>×1.2</span></div>
       <div class="method-row"><span>Other</span><span>×0.9</span></div>
       <div style="margin-top:8px;font-size:.65rem;color:var(--ink4);font-style:italic">Exposure = (1 − score) × 100 × multiplier. Indicative only.</div>
     </div>
@@ -693,16 +765,16 @@ button,.sec-btn,.elig-card,.rail-step,.opt,.pcard-head{touch-action:manipulation
   <div class="footer-inner">
     <div class="footer-credit">Built by Rishabh Singh · © 2026</div>
     <div>
-      <div class="footer-source">Based on: ECCTA 2023 S.199 · Home Office Guidance (6 Nov 2024)</div>
+      <div class="footer-source">Based on: ECCTA 2023 S.199 · <a href="https://www.gov.uk/government/publications/offence-of-failure-to-prevent-fraud-introduced-by-eccta/economic-crime-and-corporate-transparency-act-2023-guidance-to-organisations-on-the-offence-of-failure-to-prevent-fraud-accessible-version" target="_blank" style="color:inherit;text-decoration:underline;text-underline-offset:2px">Home Office Guidance (6 Nov 2024)</a></div>
       <div class="footer-rights">This tool is original work. Legal source material is Crown Copyright.</div>
     </div>
   </div>
 </footer>
 <script>
-const SECTORS={financial:{name:"Financial Services",multiplier:1.4},professional:{name:"Professional Services",multiplier:1.2},construction:{name:"Construction",multiplier:1.2},retail:{name:"Retail & Consumer",multiplier:1.0},technology:{name:"Technology",multiplier:1.0},other:{name:"General",multiplier:0.9}};
+const SECTORS={financial:{name:"Financial Services",multiplier:1.5},professional:{name:"Professional Services",multiplier:1.3},construction:{name:"Construction & Infrastructure",multiplier:1.3},energy:{name:"Energy & Commodities",multiplier:1.3},technology:{name:"Technology",multiplier:1.2},other:{name:"General / Other",multiplier:0.9}};
 const PRINCIPLES=[
-  {title:"Top-Level Commitment",subtitle:"Board and senior management leadership",intro:"This principle is listed first in the Home Office guidance — the SFO is likely to look here first. A board-approved policy with named accountable leadership is the foundation of everything else.",sfoFlag:"Board minutes and governance records are likely a primary focus in any SFO review"},
-  {title:"Risk Assessment",subtitle:"Documented, dynamic, and specific",intro:"The guidance states it will rarely be considered reasonable not to have conducted a risk assessment. This must focus on fraud for the organisation's benefit — not just fraud against it. Existing fraud risk assessments are likely insufficient.",sfoFlag:"A dedicated outward-fraud risk assessment is central to establishing reasonable procedures"},
+  {title:"Top-Level Commitment",subtitle:"Board and senior management leadership",intro:"This principle is listed first in the Home Office guidance, the SFO is likely to look here first. A board-approved policy with named accountable leadership is the foundation of everything else.",sfoFlag:"Board minutes and governance records are likely a primary focus in any SFO review"},
+  {title:"Risk Assessment",subtitle:"Documented, dynamic, and specific",intro:"The guidance states it will rarely be considered reasonable not to have conducted a risk assessment. This must focus on fraud for the organisation's benefit, not just fraud against it. Existing fraud risk assessments are likely insufficient.",sfoFlag:"A dedicated outward-fraud risk assessment is central to establishing reasonable procedures"},
   {title:"Prevention Procedures",subtitle:"Risk-based, tailored, and documented",intro:"Generic off-the-shelf policies are unlikely to suffice. The guidance explicitly warns that existing regulatory compliance does not automatically constitute reasonable procedures. Each procedure must map to a specific risk.",sfoFlag:"Relying on existing regulatory compliance alone may not constitute reasonable procedures"},
   {title:"Due Diligence",subtitle:"Third parties, agents, and M&A",intro:"The SFO particularly focuses on third-party relationships. M&A due diligence is a named high-risk area. Liability extends to all associated persons with no need for a formal contract.",sfoFlag:"Third-party and M&A gaps are a known SFO scrutiny area"},
   {title:"Communication & Training",subtitle:"All staff, all associated persons, ongoing",intro:"Unlike the Bribery Act, ECCTA makes training an explicit standalone commitment. It must be ongoing, cover employee movement, and extend to third-party associated persons.",sfoFlag:"Undocumented training significantly weakens evidence of reasonable procedures"},
@@ -760,6 +832,7 @@ function setSector(btn){
   document.querySelectorAll(".sec-btn").forEach(function(b){b.classList.remove("active");});
   btn.classList.add("active");
   sector=btn.dataset.sector;
+  updateSidebar();
 }
 
 function buildSteps(){
@@ -829,7 +902,7 @@ function optClick(btn){
   if(act)act.classList.toggle("show",val==="no"||val==="partial");
   var pr=document.getElementById("qp-"+pi+"-"+qi);
   if(pr)pr.classList.toggle("show",val==="no");
-  updateSidebar();updatePCard(pi);saveProgress();
+  updateSidebar();updatePCard(pi);
 }
 
 function goStep(n){
