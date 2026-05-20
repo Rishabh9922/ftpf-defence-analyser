@@ -17,7 +17,7 @@ Compliance officers, in-house lawyers, CFOs, and General
 Counsel at UK organisations subject to the FTPF offence.
 
 ## Live tool
-👉 https://yourusername.github.io/ftpf-defence-analyser
+👉 https://rishabh9922.github.io/ftpf-defence-analyser
 
 ## Legal basis
 Based on: ECCTA 2023, S.199 · Home Office Guidance to 
@@ -30,4 +30,4 @@ constitute legal advice. Independent legal counsel should
 be obtained before making compliance decisions.
 
 ## Built by
-[Your Name] · [Your LinkedIn URL]
+Rishabh Singh · linkedin.com/in/rishabhs11
